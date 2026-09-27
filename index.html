@@ -1,842 +1,687 @@
 <!doctype html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Presensi Kelas · Deep Ocean</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700&display=swap" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      :root {
-        --deep-1: #0a1628;
-        --deep-2: #0d1f3a;
-        --deep-3: #12294d;
-        --glow-cyan: #4dd9ff;
-        --glow-teal: #00ffc6;
-        --glow-blue: #5b8def;
-        --glow-purple: #a78bfa;
-        --glow-pink: #ff7ac6;
-        --glow-gold: #ffd966;
-        --text-main: #e6f4ff;
-        --text-soft: #a8c8e8;
-        --text-dim: #5a7ba8;
-        --font-display: "Cinzel", serif;
-        --font-body: "DM Sans", sans-serif;
-      }
-      body.light-mode { --deep-1: #e8f4fc; --deep-2: #d4eaf5; --deep-3: #c0dff0; --text-main: #0a1628; --text-soft: #2a4a68; --text-dim: #5a7ba8; }
-      html { scroll-behavior: smooth; }
-      body { font-family: var(--font-body); background: var(--deep-1); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 30px 14px 80px; overflow-x: hidden; -webkit-font-smoothing: antialiased; transition: background 0.5s, color 0.5s; }
-      .ocean-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(91,141,239,0.35) 0%, transparent 60%), radial-gradient(ellipse 50% 30% at 20% 100%, rgba(0,255,198,0.15) 0%, transparent 60%), radial-gradient(ellipse 50% 30% at 80% 100%, rgba(167,139,250,0.18) 0%, transparent 60%), linear-gradient(180deg, var(--deep-1) 0%, var(--deep-2) 40%, var(--deep-3) 70%, #060e1c 100%); }
-      body.light-mode .ocean-bg { background: linear-gradient(180deg, #e8f4fc 0%, #d4eaf5 50%, #c0dff0 100%); }
-      .bubbles, .plankton { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
-      .bubble { position: absolute; bottom: -50px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, rgba(77,217,255,0.15) 30%, transparent 100%); border: 1px solid rgba(77,217,255,0.3); animation: bubbleRise linear infinite; }
-      @keyframes bubbleRise { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(-110vh) scale(1.1); opacity: 0; } }
-      .plankton-dot { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--glow-cyan); box-shadow: 0 0 8px var(--glow-cyan); animation: planktonDrift ease-in-out infinite; }
-      @keyframes planktonDrift { 0%, 100% { transform: translate(0, 0); opacity: 0; } 50% { transform: translate(30px, -40px); opacity: 0.6; } }
-      .toggle-controls { position: fixed; top: 20px; right: 20px; z-index: 100; display: flex; gap: 8px; }
-      .toggle-btn { width: 44px; height: 44px; border-radius: 50%; background: rgba(10,22,40,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(77,217,255,0.3); color: var(--glow-cyan); font-size: 16px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
-      .toggle-btn:hover { transform: translateY(-3px) scale(1.05); background: rgba(77,217,255,0.15); }
-      .toggle-btn .sound-off { display: none; }
-      .toggle-btn.muted .sound-on { display: none; }
-      .toggle-btn.muted .sound-off { display: block; }
-      .aquarium { position: relative; z-index: 10; max-width: 560px; width: 100%; background: linear-gradient(180deg, rgba(13,31,58,0.85) 0%, rgba(10,22,40,0.95) 100%); backdrop-filter: blur(20px); border-radius: 30px; border: 2px solid rgba(77,217,255,0.25); box-shadow: 0 20px 60px rgba(0,0,0,0.5); overflow: hidden; }
-      body.light-mode .aquarium { background: linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(232,244,252,0.95) 100%); }
-      .water-surface { height: 8px; background: linear-gradient(90deg, transparent 0%, rgba(77,217,255,0.4) 20%, rgba(0,255,198,0.3) 50%, rgba(167,139,250,0.4) 80%, transparent 100%); }
-      .header { padding: 40px 30px 30px; text-align: center; border-bottom: 1px solid rgba(77,217,255,0.15); }
-      .header-badge { display: inline-flex; align-items: center; gap: 10px; padding: 6px 18px; background: rgba(77,217,255,0.08); border: 1px solid rgba(77,217,255,0.3); border-radius: 30px; font-size: 10px; font-weight: 500; letter-spacing: 3px; color: var(--glow-cyan); text-transform: uppercase; margin-bottom: 18px; }
-      h1 { font-family: var(--font-display); font-weight: 600; font-size: 34px; line-height: 1.1; letter-spacing: 1px; color: var(--text-main); margin-bottom: 8px; text-shadow: 0 0 30px rgba(77,217,255,0.5); }
-      h1 .accent { background: linear-gradient(135deg, var(--glow-cyan) 0%, var(--glow-teal) 50%, var(--glow-purple) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-      .subtitle { font-weight: 300; font-size: 12px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-soft); }
-      .clock-strip { display: inline-flex; align-items: center; gap: 12px; margin-top: 22px; padding: 10px 20px; background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.15); border-radius: 30px; font-family: var(--font-display); font-size: 14px; font-weight: 500; letter-spacing: 3px; color: var(--glow-cyan); }
-      .clock-strip .pulse-orb { width: 8px; height: 8px; border-radius: 50%; background: var(--glow-teal); box-shadow: 0 0 10px var(--glow-teal); animation: orbPulse 2s ease-in-out infinite; }
-      @keyframes orbPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.6); opacity: 0.5; } }
-      .content { padding: 30px 28px 34px; }
-      .sec-title { display: flex; align-items: center; gap: 12px; font-family: var(--font-display); font-size: 13px; font-weight: 500; letter-spacing: 4px; color: var(--glow-cyan); text-transform: uppercase; margin: 14px 0 18px; }
-      .sec-title::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--glow-teal); box-shadow: 0 0 10px var(--glow-teal); }
-      .sec-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(77,217,255,0.4), transparent); }
-      .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 22px; }
-      .stat-card { background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.2); border-radius: 20px 20px 8px 8px; padding: 20px 8px 16px; text-align: center; }
-      .stat-card .emoji { font-size: 22px; display: block; margin-bottom: 6px; }
-      .stat-card .num { font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1; margin-bottom: 6px; color: var(--glow-cyan); }
-      .stat-card.hadir .num { color: var(--glow-teal); }
-      .stat-card.belum .num { color: var(--glow-pink); }
-      .stat-card .lbl { font-size: 9px; font-weight: 500; letter-spacing: 2.5px; color: var(--text-soft); text-transform: uppercase; }
-      .qr-bubble { text-align: center; padding: 30px 20px; background: radial-gradient(ellipse at center, rgba(77,217,255,0.1) 0%, transparent 70%); border-radius: 24px; margin-bottom: 24px; }
-      .qr-canvas-wrap { width: 209px; height: 209px; display: block; margin: 0 auto; background: #fff; padding: 12px; border-radius: 20px; box-shadow: 0 0 40px rgba(77,217,255,0.4); }
-      .qr-canvas-wrap canvas, .qr-canvas-wrap img { width: 185px !important; height: 185px !important; display: block !important; }
-      .qr-caption { margin-top: 16px; font-size: 12px; letter-spacing: 3px; color: var(--text-soft); text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; }
-      .qr-caption i { color: var(--glow-teal); }
-      .btn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
-      .bubble-btn { padding: 14px 8px; background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.25); border-radius: 16px; color: var(--text-soft); font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all 0.4s; display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; }
-      .bubble-btn i { font-size: 16px; color: var(--glow-cyan); }
-      .bubble-btn:hover { background: rgba(77,217,255,0.15); border-color: var(--glow-cyan); color: var(--text-main); transform: translateY(-3px); }
-      .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 22px; }
-      .quick-btn { padding: 12px 14px; background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.2); border-radius: 14px; color: var(--text-soft); font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-      .quick-btn i { color: var(--glow-cyan); font-size: 13px; }
-      .quick-btn:hover { background: rgba(77,217,255,0.12); border-color: var(--glow-cyan); color: var(--text-main); }
-      .gen-panel { background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.2); border-radius: 20px; padding: 20px; margin-bottom: 26px; }
-      .gen-label { font-size: 11px; font-weight: 500; letter-spacing: 3px; color: var(--glow-teal); text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-      .input-row { display: flex; gap: 8px; }
-      .input-row input { flex: 1; padding: 13px 18px; background: rgba(10,22,40,0.6); border: 1px solid rgba(77,217,255,0.25); border-radius: 14px; color: var(--text-main); font-family: var(--font-body); font-size: 13px; }
-      .input-row input::placeholder { color: var(--text-dim); font-style: italic; }
-      .input-row input:focus { outline: none; border-color: var(--glow-cyan); }
-      .input-row button { padding: 13px 22px; background: linear-gradient(135deg, var(--glow-cyan) 0%, var(--glow-blue) 100%); border: none; border-radius: 14px; color: var(--deep-1); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-      .qr-preview { display: none; margin-top: 16px; padding: 20px; background: rgba(10,22,40,0.5); border: 1px solid rgba(77,217,255,0.3); border-radius: 16px; text-align: center; }
-      .qr-preview.show { display: block !important; }
-      .qr-preview-canvas { display: inline-block; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 14px; }
-      .qr-preview .qr-info { font-size: 12px; line-height: 2; text-align: left; padding: 14px 16px; background: rgba(77,217,255,0.06); border-left: 2px solid var(--glow-cyan); border-radius: 8px; color: var(--text-soft); margin-bottom: 14px; }
-      .qr-preview .qr-info strong { font-family: var(--font-display); font-size: 10px; font-weight: 600; letter-spacing: 2px; color: var(--glow-cyan); text-transform: uppercase; display: inline-block; min-width: 70px; }
-      .qr-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-      .qr-actions button { padding: 11px; border-radius: 12px; font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border: none; }
-      .qr-actions button:first-child { background: linear-gradient(135deg, var(--glow-teal), var(--glow-cyan)); color: var(--deep-1); }
-      .qr-actions button:last-child { background: transparent; color: var(--glow-pink); border: 1px solid rgba(255,122,198,0.4); }
-      .conn-orb { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 20px; background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.15); border-radius: 30px; font-size: 10px; font-weight: 500; letter-spacing: 3px; color: var(--text-soft); text-transform: uppercase; margin-bottom: 20px; }
-      .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-      .dot.online { background: var(--glow-teal); box-shadow: 0 0 10px var(--glow-teal); }
-      .dot.offline { background: var(--glow-pink); box-shadow: 0 0 10px var(--glow-pink); }
-      .dot.checking { background: var(--glow-gold); box-shadow: 0 0 10px var(--glow-gold); }
-      #status { display: none; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 16px; font-size: 11px; font-weight: 500; letter-spacing: 1px; margin-bottom: 20px; border: 1px solid; }
-      #status.success { display: flex; background: rgba(0,255,198,0.1); color: var(--glow-teal); border-color: rgba(0,255,198,0.4); }
-      #status.error { display: flex; background: rgba(255,122,198,0.1); color: var(--glow-pink); border-color: rgba(255,122,198,0.4); }
-      #status.warning { display: flex; background: rgba(255,217,102,0.1); color: var(--glow-gold); border-color: rgba(255,217,102,0.4); }
-      #status.info { display: flex; background: rgba(77,217,255,0.1); color: var(--glow-cyan); border-color: rgba(77,217,255,0.4); }
-      .scanner-shell { position: relative; padding: 12px; background: rgba(77,217,255,0.05); border-radius: 24px; margin-bottom: 14px; border: 1px solid rgba(77,217,255,0.2); }
-      .scanner-inner { background: #000; border-radius: 16px; overflow: hidden; position: relative; min-height: 280px; }
-      #qr-reader { width: 100% !important; min-height: 280px; background: #000; }
-      #qr-reader video { width: 100% !important; display: block !important; }
-      #qr-reader > div:not(:first-child) { display: none !important; }
-      .scan-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
-      .scan-target { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 64%; aspect-ratio: 1; border-radius: 24px; box-shadow: 0 0 0 4000px rgba(6,14,28,0.75); }
-      .scan-corner { position: absolute; width: 34px; height: 34px; border: 3px solid var(--glow-cyan); border-radius: 8px; }
-      .scan-corner-tl { top: -2px; left: -2px; border-right: none; border-bottom: none; }
-      .scan-corner-tr { top: -2px; right: -2px; border-left: none; border-bottom: none; border-color: var(--glow-teal); }
-      .scan-corner-bl { bottom: -2px; left: -2px; border-right: none; border-top: none; border-color: var(--glow-purple); }
-      .scan-corner-br { bottom: -2px; right: -2px; border-left: none; border-top: none; border-color: var(--glow-pink); }
-      .scan-beam { position: absolute; left: 8%; right: 8%; height: 2px; background: linear-gradient(90deg, transparent, var(--glow-cyan), var(--glow-teal), transparent); animation: scanWave 2.4s ease-in-out infinite alternate; }
-      @keyframes scanWave { 0% { top: 12%; opacity: 0.4; } 50% { opacity: 1; } 100% { top: 88%; opacity: 0.4; } }
-      .scan-hint { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); padding: 8px 18px; background: rgba(10,22,40,0.9); border: 1px solid rgba(77,217,255,0.4); border-radius: 30px; color: var(--glow-cyan); font-size: 10px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; white-space: nowrap; z-index: 15; }
-      .scan-controls { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 26px; }
-      .scan-controls button { padding: 15px; border-radius: 16px; font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; }
-      .btn-scan-ocean { background: linear-gradient(135deg, var(--glow-cyan) 0%, var(--glow-blue) 50%, var(--glow-purple) 100%); color: var(--deep-1); }
-      .btn-scan-ocean.stop { background: linear-gradient(135deg, var(--glow-pink) 0%, #ff5a7a 100%); }
-      .btn-flash-ocean { background: rgba(77,217,255,0.08); color: var(--glow-cyan); border: 1px solid rgba(77,217,255,0.35) !important; }
-      .btn-flash-ocean.active { background: linear-gradient(135deg, var(--glow-gold) 0%, #ff9a3c 100%); color: var(--deep-1); }
-      .search-wrap { position: relative; margin-bottom: 16px; }
-      .search-wrap input { width: 100%; padding: 12px 16px 12px 42px; background: rgba(10,22,40,0.6); border: 1px solid rgba(77,217,255,0.25); border-radius: 14px; color: var(--text-main); font-size: 13px; }
-      .search-wrap input::placeholder { color: var(--text-dim); font-style: italic; }
-      .search-wrap input:focus { outline: none; border-color: var(--glow-cyan); }
-      .search-wrap .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--glow-cyan); font-size: 14px; }
-      .search-wrap .clear-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 6px; display: none; }
-      .search-wrap .clear-btn.visible { display: block; }
-      .filter-tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 6px; }
-      .filter-tab { padding: 8px 16px; background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.2); border-radius: 20px; color: var(--text-soft); font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
-      .filter-tab.active { background: linear-gradient(135deg, var(--glow-cyan), var(--glow-blue)); color: var(--deep-1); border-color: transparent; }
-      .data-shell { background: rgba(77,217,255,0.04); border: 1px solid rgba(77,217,255,0.18); border-radius: 20px; overflow: hidden; margin-bottom: 22px; }
-      .data-head { padding: 14px 20px; background: linear-gradient(90deg, rgba(77,217,255,0.1), rgba(167,139,250,0.08)); border-bottom: 1px solid rgba(77,217,255,0.15); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-display); font-size: 13px; font-weight: 500; letter-spacing: 2px; color: var(--glow-cyan); text-transform: uppercase; }
-      .data-head .count-badge { padding: 4px 12px; background: rgba(77,217,255,0.15); border: 1px solid rgba(77,217,255,0.3); border-radius: 20px; font-size: 10px; }
-      .table-wrap { max-height: 280px; overflow-y: auto; }
-      .data-shell table { width: 100%; border-collapse: collapse; font-size: 12px; }
-      .data-shell th { padding: 12px 14px; text-align: left; font-family: var(--font-display); font-size: 10px; font-weight: 500; letter-spacing: 2px; color: var(--glow-cyan); text-transform: uppercase; background: rgba(10,22,40,0.5); border-bottom: 1px solid rgba(77,217,255,0.15); position: sticky; top: 0; }
-      .data-shell td { padding: 12px 14px; border-bottom: 1px solid rgba(77,217,255,0.06); color: var(--text-soft); }
-      .data-shell td strong { color: var(--glow-cyan); font-family: var(--font-display); }
-      .status-hadir { display: inline-flex; padding: 4px 12px; background: rgba(0,255,198,0.12); border: 1px solid rgba(0,255,198,0.4); border-radius: 20px; color: var(--glow-teal); font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; }
-      .status-belum { display: inline-flex; padding: 4px 12px; background: rgba(90,123,168,0.1); border: 1px solid rgba(90,123,168,0.3); border-radius: 20px; color: var(--text-dim); font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; }
-      .loading-text { padding: 36px 20px; text-align: center; font-family: var(--font-display); font-style: italic; font-size: 14px; color: var(--text-soft); }
-      .loading-text i { color: var(--glow-cyan); margin-right: 10px; }
-      .footer { padding: 26px 20px 30px; text-align: center; border-top: 1px solid rgba(77,217,255,0.1); background: rgba(10,22,40,0.4); font-size: 10px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; line-height: 2.4; }
-      .footer a { color: var(--glow-cyan); text-decoration: none; border-bottom: 1px dashed var(--glow-cyan); }
-      .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); padding: 14px 24px; background: rgba(10,22,40,0.95); backdrop-filter: blur(12px); border: 1px solid rgba(77,217,255,0.3); border-radius: 30px; color: var(--glow-cyan); font-size: 12px; font-weight: 500; letter-spacing: 1.5px; z-index: 600; opacity: 0; transition: all 0.4s; max-width: 90vw; text-align: center; }
-      .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-      .modal-overlay { position: fixed; inset: 0; background: rgba(6,14,28,0.85); backdrop-filter: blur(8px); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
-      .modal-overlay.show { display: flex; }
-      .modal { background: linear-gradient(180deg, rgba(13,31,58,0.98), rgba(10,22,40,0.98)); border: 1px solid rgba(77,217,255,0.3); border-radius: 24px; max-width: 440px; width: 100%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; }
-      .modal-head { padding: 20px 24px 16px; border-bottom: 1px solid rgba(77,217,255,0.15); display: flex; justify-content: space-between; align-items: center; }
-      .modal-title { font-family: var(--font-display); font-size: 16px; font-weight: 600; letter-spacing: 2px; color: var(--glow-cyan); text-transform: uppercase; }
-      .modal-close { width: 32px; height: 32px; border-radius: 50%; background: rgba(77,217,255,0.1); border: 1px solid rgba(77,217,255,0.3); color: var(--glow-cyan); cursor: pointer; font-size: 14px; }
-      .modal-body { padding: 20px 24px 24px; overflow-y: auto; flex: 1; }
-      .history-item { padding: 14px 16px; background: rgba(77,217,255,0.05); border-left: 3px solid var(--glow-cyan); border-radius: 10px; margin-bottom: 10px; }
-      .history-date { font-family: var(--font-display); font-size: 12px; font-weight: 600; color: var(--glow-cyan); letter-spacing: 1.5px; margin-bottom: 6px; }
-      .history-count { font-size: 12px; color: var(--text-soft); display: flex; align-items: center; gap: 8px; }
-      .history-count .badge { display: inline-block; padding: 2px 8px; background: rgba(0,255,198,0.15); border: 1px solid rgba(0,255,198,0.4); border-radius: 10px; color: var(--glow-teal); font-size: 10px; font-weight: 600; }
-      @media (max-width: 480px) { body { padding: 20px 10px 60px; } h1 { font-size: 26px; } .content { padding: 24px 18px 28px; } .qr-canvas-wrap { width: 180px; height: 180px; } .qr-canvas-wrap canvas, .qr-canvas-wrap img { width: 156px !important; height: 156px !important; } .input-row { flex-direction: column; } .input-row button { width: 100%; justify-content: center; } }
-    </style>
-  </head>
-    <body>
-    <div class="ocean-bg"></div>
-    <div class="bubbles" id="bubbles"></div>
-    <div class="plankton" id="plankton"></div>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Presensi Kelas · Deep Ocean</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --deep-1: #0a1628; --deep-2: #0d1f3a; --deep-3: #12294d;
+  --glow-cyan: #4dd9ff; --glow-teal: #00ffc6; --glow-blue: #5b8def;
+  --glow-purple: #a78bfa; --glow-pink: #ff7ac6; --glow-gold: #ffd966;
+  --text-main: #e6f4ff; --text-soft: #a8c8e8; --text-dim: #5a7ba8;
+  --font-display: "Cinzel", serif; --font-body: "DM Sans", sans-serif;
+}
+body { font-family: var(--font-body); background: var(--deep-1); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 20px 12px 60px; -webkit-font-smoothing: antialiased; }
+.ocean-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(91,141,239,0.35) 0%, transparent 60%), radial-gradient(ellipse 50% 30% at 20% 100%, rgba(0,255,198,0.15) 0%, transparent 60%), linear-gradient(180deg, var(--deep-1) 0%, var(--deep-2) 40%, var(--deep-3) 70%, #060e1c 100%); }
+.bubbles { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.bubble { position: absolute; bottom: -50px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, rgba(77,217,255,0.15) 30%, transparent 100%); border: 1px solid rgba(77,217,255,0.3); animation: bubbleRise linear infinite; }
+@keyframes bubbleRise { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(-110vh) scale(1.1); opacity: 0; } }
+.toggle-controls { position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; gap: 8px; }
+.toggle-btn { width: 42px; height: 42px; border-radius: 50%; background: rgba(10,22,40,0.7); border: 1px solid rgba(77,217,255,0.3); color: var(--glow-cyan); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.aquarium { position: relative; z-index: 10; max-width: 560px; width: 100%; background: linear-gradient(180deg, rgba(13,31,58,0.9), rgba(10,22,40,0.95)); border-radius: 30px; border: 2px solid rgba(77,217,255,0.25); box-shadow: 0 20px 60px rgba(0,0,0,0.5); overflow: hidden; }
+.water-surface { height: 8px; background: linear-gradient(90deg, transparent, rgba(77,217,255,0.6), rgba(0,255,198,0.4), transparent); }
+.header { padding: 32px 24px 24px; text-align: center; border-bottom: 1px solid rgba(77,217,255,0.15); }
+.header-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: rgba(77,217,255,0.08); border: 1px solid rgba(77,217,255,0.3); border-radius: 30px; font-size: 10px; font-weight: 500; letter-spacing: 2px; color: var(--glow-cyan); text-transform: uppercase; margin-bottom: 14px; }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: 32px; letter-spacing: 1px; margin-bottom: 6px; text-shadow: 0 0 30px rgba(77,217,255,0.5); }
+h1 .accent { background: linear-gradient(135deg, var(--glow-cyan), var(--glow-teal), var(--glow-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.subtitle { font-weight: 300; font-size: 11px; letter-spacing: 3px; color: var(--text-soft); text-transform: uppercase; }
+.clock-strip { display: inline-flex; align-items: center; gap: 10px; margin-top: 16px; padding: 8px 18px; background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.15); border-radius: 30px; font-family: var(--font-display); font-size: 13px; color: var(--glow-cyan); }
+.clock-strip .pulse-orb { width: 8px; height: 8px; border-radius: 50%; background: var(--glow-teal); box-shadow: 0 0 10px var(--glow-teal); }
+.content { padding: 24px 22px 28px; }
+.sec-title { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 12px; letter-spacing: 3px; color: var(--glow-cyan); text-transform: uppercase; margin: 12px 0 14px; }
+.sec-title::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--glow-teal); box-shadow: 0 0 10px var(--glow-teal); }
+.sec-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(77,217,255,0.4), transparent); }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.stat-card { background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.2); border-radius: 16px; padding: 16px 8px 14px; text-align: center; }
+.stat-card .emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+.stat-card .num { font-family: var(--font-display); font-size: 26px; font-weight: 700; line-height: 1; margin-bottom: 4px; color: var(--glow-cyan); }
+.stat-card.hadir .num { color: var(--glow-teal); }
+.stat-card.belum .num { color: var(--glow-pink); }
+.stat-card .lbl { font-size: 9px; letter-spacing: 2px; color: var(--text-soft); text-transform: uppercase; }
+.qr-bubble { text-align: center; padding: 20px; background: rgba(77,217,255,0.04); border-radius: 20px; margin-bottom: 20px; }
+.qr-canvas-wrap { display: inline-block; background: #fff; padding: 12px; border-radius: 16px; box-shadow: 0 0 40px rgba(77,217,255,0.4); }
+.qr-canvas-wrap canvas, .qr-canvas-wrap img { display: block !important; width: 180px !important; height: 180px !important; }
+.qr-caption { margin-top: 12px; font-size: 11px; letter-spacing: 2px; color: var(--text-soft); text-transform: uppercase; }
+.btn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+.bubble-btn { padding: 12px 6px; background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.25); border-radius: 14px; color: var(--text-soft); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; }
+.bubble-btn i { font-size: 15px; color: var(--glow-cyan); }
+.quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+.quick-btn { padding: 10px 12px; background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.2); border-radius: 12px; color: var(--text-soft); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.quick-btn i { color: var(--glow-cyan); font-size: 12px; }
+.gen-panel { background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.2); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
+.gen-label { font-size: 10px; letter-spacing: 2px; color: var(--glow-teal); text-transform: uppercase; margin-bottom: 10px; }
+.input-row { display: flex; gap: 8px; }
+.input-row input { flex: 1; padding: 12px 14px; background: rgba(10,22,40,0.6); border: 1px solid rgba(77,217,255,0.25); border-radius: 12px; color: var(--text-main); font-size: 13px; }
+.input-row input::placeholder { color: var(--text-dim); font-style: italic; }
+.input-row input:focus { outline: none; border-color: var(--glow-cyan); }
+.input-row button { padding: 12px 18px; background: linear-gradient(135deg, var(--glow-cyan), var(--glow-blue)); border: none; border-radius: 12px; color: var(--deep-1); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+.qr-preview { display: none; margin-top: 14px; padding: 16px; background: rgba(10,22,40,0.6); border: 1px solid rgba(77,217,255,0.3); border-radius: 14px; text-align: center; }
+.qr-preview.show { display: block !important; }
+.qr-preview-canvas { display: inline-block; background: #fff; padding: 10px; border-radius: 10px; margin-bottom: 12px; }
+.qr-preview .qr-info { font-size: 12px; line-height: 1.9; text-align: left; padding: 12px 14px; background: rgba(77,217,255,0.06); border-left: 2px solid var(--glow-cyan); border-radius: 8px; color: var(--text-soft); margin-bottom: 12px; }
+.qr-preview .qr-info strong { font-family: var(--font-display); font-size: 10px; letter-spacing: 1.5px; color: var(--glow-cyan); text-transform: uppercase; display: inline-block; min-width: 70px; }
+.qr-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.qr-actions button { padding: 10px; border-radius: 10px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; border: none; }
+.qr-actions button:first-child { background: linear-gradient(135deg, var(--glow-teal), var(--glow-cyan)); color: var(--deep-1); }
+.qr-actions button:last-child { background: transparent; color: var(--glow-pink); border: 1px solid rgba(255,122,198,0.4); }
+.conn-orb { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.15); border-radius: 30px; font-size: 10px; letter-spacing: 2px; color: var(--text-soft); text-transform: uppercase; margin-bottom: 18px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.online { background: var(--glow-teal); box-shadow: 0 0 10px var(--glow-teal); }
+.dot.offline { background: var(--glow-pink); box-shadow: 0 0 10px var(--glow-pink); }
+.dot.checking { background: var(--glow-gold); box-shadow: 0 0 10px var(--glow-gold); }
+#status { display: none; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 14px; font-size: 11px; letter-spacing: 0.5px; margin-bottom: 18px; border: 1px solid; }
+#status.success { display: flex; background: rgba(0,255,198,0.1); color: var(--glow-teal); border-color: rgba(0,255,198,0.4); }
+#status.error { display: flex; background: rgba(255,122,198,0.1); color: var(--glow-pink); border-color: rgba(255,122,198,0.4); }
+#status.warning { display: flex; background: rgba(255,217,102,0.1); color: var(--glow-gold); border-color: rgba(255,217,102,0.4); }
+#status.info { display: flex; background: rgba(77,217,255,0.1); color: var(--glow-cyan); border-color: rgba(77,217,255,0.4); }
+.scanner-shell { padding: 10px; background: rgba(77,217,255,0.05); border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(77,217,255,0.2); }
+.scanner-inner { background: #000; border-radius: 14px; overflow: hidden; position: relative; min-height: 260px; }
+#qr-reader { width: 100% !important; min-height: 260px; background: #000; }
+#qr-reader video { width: 100% !important; display: block !important; }
+#qr-reader > div:not(:first-child) { display: none !important; }
+.scan-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+.scan-target { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60%; aspect-ratio: 1; border-radius: 20px; box-shadow: 0 0 0 4000px rgba(6,14,28,0.75); }
+.scan-corner { position: absolute; width: 30px; height: 30px; border: 3px solid var(--glow-cyan); border-radius: 6px; }
+.scan-corner-tl { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+.scan-corner-tr { top: -2px; right: -2px; border-left: none; border-bottom: none; border-color: var(--glow-teal); }
+.scan-corner-bl { bottom: -2px; left: -2px; border-right: none; border-top: none; border-color: var(--glow-purple); }
+.scan-corner-br { bottom: -2px; right: -2px; border-left: none; border-top: none; border-color: var(--glow-pink); }
+.scan-beam { position: absolute; left: 8%; right: 8%; height: 2px; background: linear-gradient(90deg, transparent, var(--glow-cyan), var(--glow-teal), transparent); animation: scanWave 2.4s ease-in-out infinite alternate; }
+@keyframes scanWave { 0% { top: 12%; opacity: 0.4; } 100% { top: 88%; opacity: 0.4; } }
+.scan-hint { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); padding: 6px 16px; background: rgba(10,22,40,0.9); border: 1px solid rgba(77,217,255,0.4); border-radius: 30px; color: var(--glow-cyan); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; z-index: 15; }
+.scan-controls { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-bottom: 22px; }
+.scan-controls button { padding: 14px; border-radius: 14px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; border: none; }
+.btn-scan-ocean { background: linear-gradient(135deg, var(--glow-cyan), var(--glow-blue), var(--glow-purple)); color: var(--deep-1); font-weight: 700; }
+.btn-scan-ocean.stop { background: linear-gradient(135deg, var(--glow-pink), #ff5a7a); color: white; }
+.btn-flash-ocean { background: rgba(77,217,255,0.08); color: var(--glow-cyan); border: 1px solid rgba(77,217,255,0.35) !important; }
+.btn-flash-ocean.active { background: linear-gradient(135deg, var(--glow-gold), #ff9a3c); color: var(--deep-1); }
+.search-wrap { position: relative; margin-bottom: 14px; }
+.search-wrap input { width: 100%; padding: 12px 16px 12px 42px; background: rgba(10,22,40,0.6); border: 1px solid rgba(77,217,255,0.25); border-radius: 12px; color: var(--text-main); font-size: 13px; }
+.search-wrap input::placeholder { color: var(--text-dim); font-style: italic; }
+.search-wrap input:focus { outline: none; border-color: var(--glow-cyan); }
+.search-wrap .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--glow-cyan); font-size: 14px; }
+.search-wrap .clear-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 6px; display: none; }
+.search-wrap .clear-btn.visible { display: block; }
+.filter-tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 6px; }
+.filter-tab { padding: 7px 14px; background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.2); border-radius: 20px; color: var(--text-soft); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+.filter-tab.active { background: linear-gradient(135deg, var(--glow-cyan), var(--glow-blue)); color: var(--deep-1); border-color: transparent; }
+.data-shell { background: rgba(77,217,255,0.04); border: 1px solid rgba(77,217,255,0.18); border-radius: 18px; overflow: hidden; margin-bottom: 20px; }
+.data-head { padding: 12px 16px; background: rgba(77,217,255,0.08); border-bottom: 1px solid rgba(77,217,255,0.15); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-display); font-size: 12px; letter-spacing: 2px; color: var(--glow-cyan); text-transform: uppercase; }
+.data-head .count-badge { padding: 3px 10px; background: rgba(77,217,255,0.15); border: 1px solid rgba(77,217,255,0.3); border-radius: 20px; font-size: 10px; }
+.table-wrap { max-height: 300px; overflow-y: auto; }
+.data-shell table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-shell th { padding: 10px 12px; text-align: left; font-family: var(--font-display); font-size: 10px; letter-spacing: 1.5px; color: var(--glow-cyan); text-transform: uppercase; background: rgba(10,22,40,0.6); border-bottom: 1px solid rgba(77,217,255,0.15); position: sticky; top: 0; z-index: 2; }
+.data-shell td { padding: 10px 12px; border-bottom: 1px solid rgba(77,217,255,0.06); color: var(--text-soft); }
+.data-shell td strong { color: var(--glow-cyan); font-family: var(--font-display); }
+.status-hadir { display: inline-block; padding: 3px 10px; background: rgba(0,255,198,0.12); border: 1px solid rgba(0,255,198,0.4); border-radius: 20px; color: var(--glow-teal); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
+.status-belum { display: inline-block; padding: 3px 10px; background: rgba(90,123,168,0.1); border: 1px solid rgba(90,123,168,0.3); border-radius: 20px; color: var(--text-dim); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
+.loading-text { padding: 30px 20px; text-align: center; font-family: var(--font-display); font-style: italic; font-size: 13px; color: var(--text-soft); }
+.loading-text i { color: var(--glow-cyan); margin-right: 8px; }
+.footer { padding: 20px; text-align: center; border-top: 1px solid rgba(77,217,255,0.1); background: rgba(10,22,40,0.4); font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; line-height: 2; }
+.footer a { color: var(--glow-cyan); text-decoration: none; border-bottom: 1px dashed var(--glow-cyan); }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); padding: 12px 20px; background: rgba(10,22,40,0.95); border: 1px solid rgba(77,217,255,0.3); border-radius: 30px; color: var(--glow-cyan); font-size: 12px; letter-spacing: 1px; z-index: 600; opacity: 0; transition: all 0.4s; max-width: 90vw; text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(6,14,28,0.85); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.show { display: flex; }
+.modal { background: linear-gradient(180deg, rgba(13,31,58,0.98), rgba(10,22,40,0.98)); border: 1px solid rgba(77,217,255,0.3); border-radius: 20px; max-width: 440px; width: 100%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; }
+.modal-head { padding: 16px 20px 14px; border-bottom: 1px solid rgba(77,217,255,0.15); display: flex; justify-content: space-between; align-items: center; }
+.modal-title { font-family: var(--font-display); font-size: 15px; letter-spacing: 2px; color: var(--glow-cyan); text-transform: uppercase; }
+.modal-close { width: 30px; height: 30px; border-radius: 50%; background: rgba(77,217,255,0.1); border: 1px solid rgba(77,217,255,0.3); color: var(--glow-cyan); cursor: pointer; font-size: 14px; }
+.modal-body { padding: 18px 20px 22px; overflow-y: auto; }
+.history-item { padding: 12px 14px; background: rgba(77,217,255,0.05); border-left: 3px solid var(--glow-cyan); border-radius: 8px; margin-bottom: 8px; }
+.history-date { font-family: var(--font-display); font-size: 12px; color: var(--glow-cyan); letter-spacing: 1.5px; margin-bottom: 4px; }
+.history-count { font-size: 12px; color: var(--text-soft); display: flex; align-items: center; gap: 8px; }
+.history-count .badge { padding: 2px 8px; background: rgba(0,255,198,0.15); border: 1px solid rgba(0,255,198,0.4); border-radius: 10px; color: var(--glow-teal); font-size: 10px; }
+@media (max-width: 480px) { h1 { font-size: 24px; } .content { padding: 20px 16px 24px; } .stat-card .num { font-size: 22px; } .qr-canvas-wrap canvas, .qr-canvas-wrap img { width: 150px !important; height: 150px !important; } .input-row { flex-direction: column; } .input-row button { width: 100%; } }
+</style>
+</head>
+<body>
+<div class="ocean-bg"></div>
+<div class="bubbles" id="bubbles"></div>
 
-    <div class="toggle-controls">
-      <button class="toggle-btn" id="soundToggle" onclick="toggleSound()" title="Suara">
-        <i class="fas fa-volume-up sound-on"></i>
-        <i class="fas fa-volume-mute sound-off"></i>
-      </button>
-      <button class="toggle-btn" id="themeToggle" onclick="toggleTheme()" title="Tema">
-        <i class="fas fa-moon"></i>
-      </button>
+<div class="toggle-controls">
+  <button class="toggle-btn" id="soundToggle" onclick="toggleSound()"><i class="fas fa-volume-up" id="soundIcon"></i></button>
+  <button class="toggle-btn" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+</div>
+
+<div class="aquarium">
+  <div class="water-surface"></div>
+
+  <div class="header">
+    <div class="header-badge"><i class="fas fa-water"></i> Deep Ocean · v8.0</div>
+    <h1>Presensi <span class="accent">Kelas</span></h1>
+    <div class="subtitle">Beneath The Waves</div>
+    <div class="clock-strip"><span class="pulse-orb"></span><span id="liveTime">--:--:--</span></div>
+  </div>
+
+  <div class="content">
+    <div class="sec-title">Kedalaman</div>
+    <div class="stats-grid">
+      <div class="stat-card"><span class="emoji">🐚</span><div class="num" id="statTotal">0</div><div class="lbl">Total</div></div>
+      <div class="stat-card hadir"><span class="emoji">🐬</span><div class="num" id="statHadir">0</div><div class="lbl">Hadir</div></div>
+      <div class="stat-card belum"><span class="emoji">🦑</span><div class="num" id="statBelum">0</div><div class="lbl">Belum</div></div>
     </div>
 
-    <div class="aquarium">
-      <div class="water-surface"></div>
+    <div class="sec-title">Kode QR</div>
+    <div class="qr-bubble">
+      <div class="qr-canvas-wrap" id="qrImage"></div>
+      <div class="qr-caption"><i class="fas fa-water"></i> Scan untuk hadir</div>
+    </div>
 
-      <div class="header">
-        <div class="header-badge">
-          <i class="fas fa-water"></i>
-          Deep Ocean · v8.0
-        </div>
-        <h1>Presensi <span class="accent">Kelas</span></h1>
-        <div class="subtitle">Beneath The Waves</div>
-        <div class="clock-strip">
-          <span class="pulse-orb"></span>
-          <span id="liveTime">--:--:--</span>
-        </div>
+    <div class="btn-row">
+      <button class="bubble-btn" onclick="loadDataMahasiswa()"><i class="fas fa-sync-alt"></i><span>Segarkan</span></button>
+      <button class="bubble-btn" onclick="downloadQR()"><i class="fas fa-download"></i><span>QR</span></button>
+      <a href="https://docs.google.com/spreadsheets/d/12HEJ_ieaoshtPwGC-FkjNUrZA_HKAtXe3ip9AEuJfEE/edit" target="_blank" class="bubble-btn"><i class="fas fa-external-link-alt"></i><span>Sheet</span></a>
+    </div>
+
+    <div class="sec-title">Aksi Cepat</div>
+    <div class="quick-actions">
+      <button class="quick-btn" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Export CSV</button>
+      <button class="quick-btn" onclick="showHistory()"><i class="fas fa-history"></i> Riwayat</button>
+    </div>
+
+    <div class="sec-title">Generate Kartu</div>
+    <div class="gen-panel">
+      <div class="gen-label"><i class="fas fa-fish"></i> Buat QR mahasiswa</div>
+      <div class="input-row">
+        <input type="text" id="qrNimInput" placeholder="Masukkan NIM mahasiswa..." maxlength="20" />
+        <button onclick="generateQRCode()"><i class="fas fa-water"></i> Buat</button>
       </div>
-
-      <div class="content">
-        <div class="sec-title">Kedalaman</div>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="emoji">🐚</span>
-            <div class="num" id="statTotal">0</div>
-            <div class="lbl">Total</div>
-          </div>
-          <div class="stat-card hadir">
-            <span class="emoji">🐬</span>
-            <div class="num" id="statHadir">0</div>
-            <div class="lbl">Hadir</div>
-          </div>
-          <div class="stat-card belum">
-            <span class="emoji">🦑</span>
-            <div class="num" id="statBelum">0</div>
-            <div class="lbl">Belum</div>
-          </div>
+      <div class="qr-preview" id="qrPreview">
+        <div class="qr-preview-canvas" id="qrResultImage"></div>
+        <div class="qr-info" id="qrInfo"></div>
+        <div class="qr-actions">
+          <button onclick="downloadQRCode()"><i class="fas fa-download"></i> Simpan</button>
+          <button onclick="closeQRPreview()"><i class="fas fa-times"></i> Tutup</button>
         </div>
-
-        <div class="sec-title">Kode QR</div>
-        <div class="qr-bubble">
-          <div class="qr-canvas-wrap" id="qrImage"></div>
-          <div class="qr-caption">
-            <i class="fas fa-water"></i> Scan untuk hadir
-            <i class="fas fa-water"></i>
-          </div>
-        </div>
-
-        <div class="btn-row">
-          <button class="bubble-btn" onclick="loadDataMahasiswa()">
-            <i class="fas fa-sync-alt"></i>
-            <span>Segarkan</span>
-          </button>
-          <button class="bubble-btn" onclick="downloadQR()">
-            <i class="fas fa-download"></i>
-            <span>QR</span>
-          </button>
-          <a href="https://docs.google.com/spreadsheets/d/10mQ8TBzMvtjlgE231g_yA03gnV1e5si_EPamu_zvozw/edit" target="_blank" class="bubble-btn">
-            <i class="fas fa-external-link-alt"></i>
-            <span>Sheet</span>
-          </a>
-        </div>
-
-        <div class="sec-title">Aksi Cepat</div>
-        <div class="quick-actions">
-          <button class="quick-btn" onclick="exportCSV()">
-            <i class="fas fa-file-csv"></i> Export CSV
-          </button>
-          <button class="quick-btn" onclick="showHistory()">
-            <i class="fas fa-history"></i> Riwayat
-          </button>
-        </div>
-
-        <div class="sec-title">Generate Kartu</div>
-        <div class="gen-panel">
-          <div class="gen-label">
-            <i class="fas fa-fish"></i> Buat QR mahasiswa
-          </div>
-          <div class="input-row">
-            <input type="text" id="qrNimInput" placeholder="Masukkan NIM mahasiswa..." maxlength="20" />
-            <button onclick="generateQRCode()">
-              <i class="fas fa-water"></i> Buat
-            </button>
-          </div>
-          <div class="qr-preview" id="qrPreview">
-            <div class="qr-preview-canvas" id="qrResultImage"></div>
-            <div class="qr-info" id="qrInfo"></div>
-            <div class="qr-actions">
-              <button onclick="downloadQRCode()">
-                <i class="fas fa-download"></i> Simpan
-              </button>
-              <button onclick="closeQRPreview()">
-                <i class="fas fa-times"></i> Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="conn-orb">
-          <span class="dot checking" id="statusDot"></span>
-          <span id="statusLabel">Menghubungkan</span>
-        </div>
-
-        <div id="status"></div>
-
-        <div class="sec-title">Pemindai</div>
-        <div class="scanner-shell">
-          <div class="scanner-inner">
-            <div id="qr-reader"></div>
-            <div class="scan-overlay">
-              <div class="scan-target">
-                <div class="scan-corner scan-corner-tl"></div>
-                <div class="scan-corner scan-corner-tr"></div>
-                <div class="scan-corner scan-corner-bl"></div>
-                <div class="scan-corner scan-corner-br"></div>
-                <div class="scan-beam"></div>
-              </div>
-              <div class="scan-hint" id="scanStatusText">
-                <i class="fas fa-water"></i> Arahkan ke QR Code
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="scan-controls">
-          <button class="btn-scan-ocean" id="btnStartScan" onclick="toggleScanner()">
-            <i class="fas fa-play"></i>
-            <span>Mulai Pindai</span>
-          </button>
-          <button class="btn-flash-ocean" id="btnFlash" onclick="toggleFlash()">
-            <i class="fas fa-bolt"></i>
-          </button>
-        </div>
-
-        <div class="sec-title">Daftar Hadir</div>
-
-        <div class="search-wrap">
-          <i class="fas fa-search search-icon"></i>
-          <input type="text" id="searchInput" placeholder="Cari nama atau NIM..." oninput="handleSearch(this.value)" />
-          <button class="clear-btn" id="clearSearch" onclick="clearSearch()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-
-        <div class="filter-tabs">
-          <button class="filter-tab active" data-filter="all" onclick="setFilter('all')">Semua</button>
-          <button class="filter-tab" data-filter="hadir" onclick="setFilter('hadir')">Hadir</button>
-          <button class="filter-tab" data-filter="belum" onclick="setFilter('belum')">Belum</button>
-        </div>
-
-        <div class="data-shell">
-          <div class="data-head">
-            <span>Log Kehadiran</span>
-            <span class="count-badge" id="totalMahasiswa">0 BARIS</span>
-          </div>
-          <div class="table-wrap">
-            <div class="loading-text" id="loadingData">
-              <i class="fas fa-spinner fa-spin"></i> Memuat data...
-            </div>
-            <table id="dataTable" style="display: none">
-              <thead>
-                <tr>
-                  <th>NIM</th>
-                  <th>Nama</th>
-                  <th>Kelas</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="tableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="footer">
-        <i class="fas fa-anchor"></i> Terhubung dengan
-        <a href="https://docs.google.com/spreadsheets/d/10mQ8TBzMvtjlgE231g_yA03gnV1e5si_EPamu_zvozw/edit" target="_blank">
-          Google Sheets
-        </a>
-        <br />
-        Status · <span id="presensiStatus">Menunggu scan</span>
       </div>
     </div>
 
-    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-      <div class="modal" onclick="event.stopPropagation()">
-        <div class="modal-head">
-          <div class="modal-title" id="modalTitle"><i class="fas fa-history"></i> Riwayat</div>
-          <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <div class="conn-orb"><span class="dot checking" id="statusDot"></span><span id="statusLabel">Menghubungkan</span></div>
+    <div id="status"></div>
+
+    <div class="sec-title">Pemindai</div>
+    <div class="scanner-shell">
+      <div class="scanner-inner">
+        <div id="qr-reader"></div>
+        <div class="scan-overlay">
+          <div class="scan-target">
+            <div class="scan-corner scan-corner-tl"></div>
+            <div class="scan-corner scan-corner-tr"></div>
+            <div class="scan-corner scan-corner-bl"></div>
+            <div class="scan-corner scan-corner-br"></div>
+            <div class="scan-beam"></div>
+          </div>
+          <div class="scan-hint" id="scanStatusText"><i class="fas fa-water"></i> Arahkan ke QR Code</div>
         </div>
-        <div class="modal-body" id="modalBody"></div>
       </div>
     </div>
 
-    <div class="toast" id="toast"></div>
-		    <script>
-      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOsBZHKN6XqpPaOAwMBv6f4vx2WHkpLt6tQI92X6kdAEYVGajB6oYn3D-hR_qAd7g0Pg/exec";
-      const SHEET_URL = "https://docs.google.com/spreadsheets/d/10mQ8TBzMvtjlgE231g_yA03gnV1e5si_EPamu_zvozw/edit";
+    <div class="scan-controls">
+      <button class="btn-scan-ocean" id="btnStartScan" onclick="toggleScanner()"><i class="fas fa-play"></i> <span>Mulai Pindai</span></button>
+      <button class="btn-flash-ocean" id="btnFlash" onclick="toggleFlash()"><i class="fas fa-bolt"></i></button>
+    </div>
 
-      const AppState = {
-        scannerRunning: false,
-        flashOn: false,
-        isProcessing: false,
-        html5QrCode: null,
-        mahasiswaData: [],
-        isOnline: false,
-        soundEnabled: true,
-        lightMode: false,
-        currentFilter: "all",
-        searchQuery: "",
-      };
+    <div class="sec-title">Daftar Hadir</div>
+    <div class="search-wrap">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInput" placeholder="Cari nama atau NIM..." oninput="handleSearch(this.value)" />
+      <button class="clear-btn" id="clearSearch" onclick="clearSearch()"><i class="fas fa-times"></i></button>
+    </div>
 
-      const DOM = {
-        status: document.getElementById("status"),
-        scanStatus: document.getElementById("scanStatusText"),
-        presensiStatus: document.getElementById("presensiStatus"),
-        btnStartScan: document.getElementById("btnStartScan"),
-        btnFlash: document.getElementById("btnFlash"),
-        qrImage: document.getElementById("qrImage"),
-        tableBody: document.getElementById("tableBody"),
-        dataTable: document.getElementById("dataTable"),
-        loadingData: document.getElementById("loadingData"),
-        totalMahasiswa: document.getElementById("totalMahasiswa"),
-        statusDot: document.getElementById("statusDot"),
-        statusLabel: document.getElementById("statusLabel"),
-        qrNimInput: document.getElementById("qrNimInput"),
-        qrResultImage: document.getElementById("qrResultImage"),
-        qrInfo: document.getElementById("qrInfo"),
-        qrPreview: document.getElementById("qrPreview"),
-        liveTime: document.getElementById("liveTime"),
-        statTotal: document.getElementById("statTotal"),
-        statHadir: document.getElementById("statHadir"),
-        statBelum: document.getElementById("statBelum"),
-        searchInput: document.getElementById("searchInput"),
-        clearSearch: document.getElementById("clearSearch"),
-        modalOverlay: document.getElementById("modalOverlay"),
-        modalTitle: document.getElementById("modalTitle"),
-        modalBody: document.getElementById("modalBody"),
-        toast: document.getElementById("toast"),
-      };
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all" onclick="setFilter('all')">Semua</button>
+      <button class="filter-tab" data-filter="hadir" onclick="setFilter('hadir')">Hadir</button>
+      <button class="filter-tab" data-filter="belum" onclick="setFilter('belum')">Belum</button>
+    </div>
 
-      let audioCtx = null;
-      function initAudio() { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } }
-      function playSound(type) {
-        if (!AppState.soundEnabled) return;
-        initAudio();
-        if (!audioCtx) return;
-        try {
-          const now = audioCtx.currentTime;
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.connect(gain); gain.connect(audioCtx.destination);
-          if (type === "success") { osc.frequency.setValueAtTime(523, now); osc.frequency.exponentialRampToValueAtTime(1046, now + 0.3); gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4); osc.start(now); osc.stop(now + 0.4); }
-          else if (type === "error") { osc.type = "square"; osc.frequency.setValueAtTime(220, now); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3); osc.start(now); osc.stop(now + 0.3); }
-          else { osc.frequency.setValueAtTime(660, now); gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1); osc.start(now); osc.stop(now + 0.1); }
-        } catch (e) {}
+    <div class="data-shell">
+      <div class="data-head"><span>Log Kehadiran</span><span class="count-badge" id="totalMahasiswa">0 BARIS</span></div>
+      <div class="table-wrap">
+        <div class="loading-text" id="loadingData"><i class="fas fa-spinner fa-spin"></i> Memuat data...</div>
+        <table id="dataTable" style="display: none">
+          <thead><tr><th>NIM</th><th>Nama</th><th>Kelas</th><th>Status</th></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <i class="fas fa-anchor"></i> Terhubung dengan
+    <a href="https://docs.google.com/spreadsheets/d/12HEJ_ieaoshtPwGC-FkjNUrZA_HKAtXe3ip9AEuJfEE/edit" target="_blank">Google Sheets</a><br>
+    Status · <span id="presensiStatus">Menunggu scan</span>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle"><i class="fas fa-history"></i> Riwayat</div>
+      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOsBZHKN6XqpPaOAwMBv6f4vx2WHkpLt6tQI92X6kdAEYVGajB6oYn3D-hR_qAd7g0Pg/exec";
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/12HEJ_ieaoshtPwGC-FkjNUrZA_HKAtXe3ip9AEuJfEE/edit";
+
+const AppState = {
+  scannerRunning: false, flashOn: false, isProcessing: false,
+  html5QrCode: null, mahasiswaData: [], isOnline: false,
+  soundEnabled: true, lightMode: false, currentFilter: "all", searchQuery: ""
+};
+
+const DOM = {
+  status: document.getElementById("status"),
+  scanStatus: document.getElementById("scanStatusText"),
+  presensiStatus: document.getElementById("presensiStatus"),
+  btnStartScan: document.getElementById("btnStartScan"),
+  btnFlash: document.getElementById("btnFlash"),
+  qrImage: document.getElementById("qrImage"),
+  tableBody: document.getElementById("tableBody"),
+  dataTable: document.getElementById("dataTable"),
+  loadingData: document.getElementById("loadingData"),
+  totalMahasiswa: document.getElementById("totalMahasiswa"),
+  statusDot: document.getElementById("statusDot"),
+  statusLabel: document.getElementById("statusLabel"),
+  qrNimInput: document.getElementById("qrNimInput"),
+  qrResultImage: document.getElementById("qrResultImage"),
+  qrInfo: document.getElementById("qrInfo"),
+  qrPreview: document.getElementById("qrPreview"),
+  liveTime: document.getElementById("liveTime"),
+  statTotal: document.getElementById("statTotal"),
+  statHadir: document.getElementById("statHadir"),
+  statBelum: document.getElementById("statBelum"),
+  searchInput: document.getElementById("searchInput"),
+  clearSearch: document.getElementById("clearSearch"),
+  modalOverlay: document.getElementById("modalOverlay"),
+  modalTitle: document.getElementById("modalTitle"),
+  modalBody: document.getElementById("modalBody"),
+  toast: document.getElementById("toast")
+};
+
+let audioCtx = null;
+function playSound(type) {
+  if (!AppState.soundEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    if (type === "success") { osc.frequency.setValueAtTime(523, now); osc.frequency.exponentialRampToValueAtTime(1046, now+0.3); gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now+0.4); osc.start(now); osc.stop(now+0.4); }
+    else if (type === "error") { osc.type = "square"; osc.frequency.setValueAtTime(220, now); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.001, now+0.3); osc.start(now); osc.stop(now+0.3); }
+    else { osc.frequency.setValueAtTime(660, now); gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now+0.1); osc.start(now); osc.stop(now+0.1); }
+  } catch(e) {}
+}
+
+function toggleSound() {
+  AppState.soundEnabled = !AppState.soundEnabled;
+  document.getElementById("soundIcon").className = AppState.soundEnabled ? "fas fa-volume-up" : "fas fa-volume-mute";
+  showToast(AppState.soundEnabled ? "🔊 Suara aktif" : "🔇 Suara mati");
+}
+
+function toggleTheme() {
+  AppState.lightMode = !AppState.lightMode;
+  document.body.style.filter = AppState.lightMode ? "invert(1) hue-rotate(180deg)" : "none";
+  showToast(AppState.lightMode ? "☀️ Mode terang" : "🌙 Mode gelap");
+}
+
+function generateQRToEl(el, text, size) {
+  el.innerHTML = "";
+  if (typeof QRCode === "undefined") { el.innerHTML = '<div style="color:#000;padding:20px;font-size:11px;">QR tidak tersedia</div>'; return null; }
+  try { return new QRCode(el, { text: text, width: size||180, height: size||180, colorDark: "#0a1628", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M }); }
+  catch(e) { return null; }
+}
+
+function getQRDataURL(el) {
+  const c = el.querySelector("canvas"); if (c) return c.toDataURL("image/png");
+  const i = el.querySelector("img"); return i ? i.src : null;
+}
+
+function generateQR() {
+  const d = { nim: "ABSENSI-KELAS", nama: "Presensi Kelas", link_sheet: SHEET_URL, timestamp: new Date().toISOString() };
+  setTimeout(() => generateQRToEl(DOM.qrImage, JSON.stringify(d), 180), 200);
+}
+
+function downloadQR() {
+  const u = getQRDataURL(DOM.qrImage);
+  if (!u) return showToast("❌ QR belum siap");
+  const a = document.createElement("a"); a.download = "qr-presensi.png"; a.href = u; a.click();
+  showToast("✅ QR diunduh");
+}
+
+function generateQRCode() {
+  const nim = DOM.qrNimInput.value.trim();
+  if (!nim || nim.length < 3) { showStatus("NIM minimal 3 angka", "error"); playSound("error"); return; }
+  const m = AppState.mahasiswaData.find(x => x.nim === nim);
+  if (!m) { showStatus("NIM " + nim + " tidak terdaftar", "error"); playSound("error"); return; }
+  const d = { nim: m.nim, nama: m.nama, kelas: m.kelas, jurusan: m.jurusan, link_sheet: SHEET_URL, timestamp: new Date().toISOString() };
+  DOM.qrResultImage.innerHTML = "";
+  generateQRToEl(DOM.qrResultImage, JSON.stringify(d), 175);
+  DOM.qrInfo.innerHTML = "<strong>NIM</strong>" + m.nim + "<br><strong>Nama</strong>" + m.nama + "<br><strong>Kelas</strong>" + m.kelas + "<br><strong>Jurusan</strong>" + m.jurusan;
+  DOM.qrPreview.classList.add("show");
+  showStatus("QR " + m.nama + " siap", "success");
+  playSound("success");
+}
+
+function downloadQRCode() {
+  const u = getQRDataURL(DOM.qrResultImage);
+  if (!u) return showToast("❌ QR belum siap");
+  const a = document.createElement("a"); a.download = "qr-" + (DOM.qrNimInput.value.trim()||"mhs") + ".png"; a.href = u; a.click();
+  showToast("✅ QR tersimpan");
+}
+
+function closeQRPreview() { DOM.qrPreview.classList.remove("show"); DOM.qrNimInput.value = ""; }
+
+let toastTimer;
+function showToast(msg, dur) {
+  DOM.toast.innerHTML = msg;
+  DOM.toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => DOM.toast.classList.remove("show"), dur||2500);
+}
+
+function handleSearch(q) { AppState.searchQuery = q.toLowerCase().trim(); DOM.clearSearch.classList.toggle("visible", !!AppState.searchQuery); applyFilters(); }
+function clearSearch() { DOM.searchInput.value = ""; AppState.searchQuery = ""; DOM.clearSearch.classList.remove("visible"); applyFilters(); }
+function setFilter(f) { AppState.currentFilter = f; document.querySelectorAll(".filter-tab").forEach(t => t.classList.toggle("active", t.dataset.filter === f)); applyFilters(); }
+
+function applyFilters() {
+  let d = AppState.mahasiswaData;
+  if (AppState.currentFilter === "hadir") d = d.filter(m => cekAbsen(m.nim));
+  else if (AppState.currentFilter === "belum") d = d.filter(m => !cekAbsen(m.nim));
+  if (AppState.searchQuery) d = d.filter(m => (m.nim||"").toLowerCase().includes(AppState.searchQuery) || (m.nama||"").toLowerCase().includes(AppState.searchQuery) || (m.kelas||"").toLowerCase().includes(AppState.searchQuery));
+  renderTable(d);
+}
+
+function renderTable(data) {
+  if (!DOM.tableBody) return;
+  DOM.tableBody.innerHTML = "";
+  if (!data || data.length === 0) {
+    DOM.loadingData.innerHTML = '<i class="fas fa-fish"></i> Tidak ada data';
+    DOM.loadingData.style.display = "block";
+    DOM.dataTable.style.display = "none";
+    DOM.totalMahasiswa.textContent = "0 BARIS";
+    return;
+  }
+  data.forEach(m => {
+    const h = cekAbsen(m.nim);
+    const tr = document.createElement("tr");
+    tr.innerHTML = '<td><strong>' + (m.nim||"-") + '</strong></td><td>' + (m.nama||"-") + '</td><td>' + (m.kelas||"-") + '</td><td><span class="' + (h?"status-hadir":"status-belum") + '">' + (h?"Hadir":"Belum") + '</span></td>';
+    DOM.tableBody.appendChild(tr);
+  });
+  DOM.loadingData.style.display = "none";
+  DOM.dataTable.style.display = "table";
+  DOM.totalMahasiswa.textContent = data.length + " BARIS";
+}
+
+function exportCSV() {
+  if (AppState.mahasiswaData.length === 0) return showToast("❌ Tidak ada data");
+  const t = new Date().toLocaleDateString("id-ID");
+  const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
+  let csv = "NIM,Nama,Kelas,Jurusan,Status,Tanggal\n";
+  AppState.mahasiswaData.forEach(m => {
+    const h = p[m.nim] === t;
+    csv += '"' + (m.nim||"") + '","' + (m.nama||"") + '","' + (m.kelas||"") + '","' + (m.jurusan||"") + '","' + (h?"Hadir":"Belum") + '","' + t + '"\n';
+  });
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "presensi-" + t.replace(/\//g,"-") + ".csv"; a.click();
+  showToast("✅ CSV diunduh");
+}
+
+function showHistory() {
+  DOM.modalTitle.innerHTML = '<i class="fas fa-history"></i> Riwayat';
+  const h = JSON.parse(localStorage.getItem("presensiHistory") || "{}");
+  const t = new Date().toLocaleDateString("id-ID");
+  const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
+  let tc = 0;
+  AppState.mahasiswaData.forEach(m => { if (p[m.nim] === t) tc++; });
+  if (tc > 0 && !h[t]) h[t] = { count: tc, total: AppState.mahasiswaData.length };
+  const e = Object.entries(h).sort((a,b) => new Date(b[0].split("/").reverse().join("-")) - new Date(a[0].split("/").reverse().join("-")));
+  if (e.length === 0) DOM.modalBody.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-soft);">Belum ada riwayat</div>';
+  else DOM.modalBody.innerHTML = e.slice(0,7).map(([d,i]) => {
+    const p2 = i.total>0 ? Math.round((i.count/i.total)*100) : 0;
+    return '<div class="history-item"><div class="history-date">📅 ' + d + '</div><div class="history-count"><span class="badge">' + i.count + ' hadir</span>dari ' + i.total + ' • ' + p2 + '%</div></div>';
+  }).join("");
+  DOM.modalOverlay.classList.add("show");
+}
+
+function closeModal(ev) { if (ev && ev.target !== DOM.modalOverlay) return; DOM.modalOverlay.classList.remove("show"); }
+
+function saveHistory() {
+  const t = new Date().toLocaleDateString("id-ID");
+  const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
+  let c = 0;
+  AppState.mahasiswaData.forEach(m => { if (p[m.nim] === t) c++; });
+  if (c > 0) {
+    const h = JSON.parse(localStorage.getItem("presensiHistory") || "{}");
+    h[t] = { count: c, total: AppState.mahasiswaData.length };
+    localStorage.setItem("presensiHistory", JSON.stringify(h));
+  }
+}
+
+function createBubbles() {
+  const c = document.getElementById("bubbles"); if (!c) return;
+  for (let i = 0; i < 15; i++) {
+    const b = document.createElement("div"); b.className = "bubble";
+    const s = 6 + Math.random()*20;
+    b.style.width = s + "px"; b.style.height = s + "px";
+    b.style.left = Math.random()*100 + "%";
+    b.style.animationDuration = 12 + Math.random()*15 + "s";
+    b.style.animationDelay = Math.random()*15 + "s";
+    c.appendChild(b);
+  }
+}
+
+function updateClock() {
+  if (!DOM.liveTime) return;
+  DOM.liveTime.textContent = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Asia/Jakarta" }) + " WIB";
+}
+setInterval(updateClock, 1000); updateClock();
+
+function setConn(s, msg) { DOM.statusDot.className = "dot " + s; DOM.statusLabel.textContent = msg; AppState.isOnline = s === "online"; }
+
+function showStatus(msg, type, dur) {
+  const ic = { success: "fa-check-circle", error: "fa-exclamation-circle", warning: "fa-triangle-exclamation", info: "fa-info-circle" };
+  DOM.status.innerHTML = '<i class="fas ' + (ic[type]||ic.info) + '"></i> <span>' + msg + '</span>';
+  DOM.status.className = type;
+  DOM.status.style.display = "flex";
+  clearTimeout(DOM.status._t);
+  if (type === "success" || type === "error") DOM.status._t = setTimeout(() => DOM.status.style.display = "none", dur||4000);
+}
+
+function updateStats() {
+  const t = AppState.mahasiswaData.length;
+  let h = 0;
+  const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
+  const today = new Date().toLocaleDateString("id-ID");
+  AppState.mahasiswaData.forEach(m => { if (p[m.nim] === today) h++; });
+  DOM.statTotal.textContent = t;
+  DOM.statHadir.textContent = h;
+  DOM.statBelum.textContent = t - h;
+  if (t > 0) saveHistory();
+}
+
+async function checkConn() {
+  setConn("checking", "Menghubungkan");
+  try {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), 5000);
+    const r = await fetch(WEB_APP_URL + "?action=ping", { method: "GET", signal: c.signal });
+    clearTimeout(t);
+    if (r.ok) { setConn("online", "Terhubung"); return true; }
+    throw new Error("No response");
+  } catch(e) { setConn("offline", "Terputus"); return false; }
+}
+
+function cekAbsen(nim) {
+  const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
+  return p[nim] === new Date().toLocaleDateString("id-ID");
+}
+
+function updateStatusInTable(nim) {
+  if (!DOM.tableBody) return;
+  DOM.tableBody.querySelectorAll("tr").forEach(r => {
+    const td = r.querySelector("td:first-child");
+    if (td && td.textContent.trim() === nim) {
+      const st = r.querySelector("td:last-child");
+      if (st) st.innerHTML = '<span class="status-hadir"><i class="fas fa-check"></i> Hadir</span>';
+    }
+  });
+  updateStats();
+}
+
+async function loadDataMahasiswa() {
+  DOM.loadingData.style.display = "block";
+  DOM.dataTable.style.display = "none";
+  DOM.loadingData.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyelami data...';
+  try {
+    const on = await checkConn();
+    if (!on) {
+      const cached = localStorage.getItem("mahasiswaData");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.length > 0) { AppState.mahasiswaData = parsed; applyFilters(); updateStats(); showStatus(parsed.length + " data dari cache", "warning", 3000); return; }
       }
+      DOM.loadingData.innerHTML = '<i class="fas fa-wifi" style="color:var(--glow-pink);"></i> Tidak ada koneksi';
+      return;
+    }
+    const r = await fetch(WEB_APP_URL + "?action=get_all", { signal: AbortSignal.timeout(15000) });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    if (d && Array.isArray(d) && d.length > 0) {
+      AppState.mahasiswaData = d;
+      localStorage.setItem("mahasiswaData", JSON.stringify(d));
+      applyFilters(); updateStats();
+      showStatus(d.length + " data dimuat", "success", 2500);
+    } else {
+      DOM.loadingData.innerHTML = '<i class="fas fa-fish"></i> Belum ada data';
+      DOM.totalMahasiswa.textContent = "0 BARIS";
+    }
+  } catch(e) {
+    const cached = localStorage.getItem("mahasiswaData");
+    if (cached) { const parsed = JSON.parse(cached); if (parsed.length > 0) { AppState.mahasiswaData = parsed; applyFilters(); updateStats(); return; } }
+    DOM.loadingData.innerHTML = '<i class="fas fa-exclamation-circle" style="color:var(--glow-pink);"></i> Gagal memuat<br><span style="font-size:11px;opacity:0.7;">' + e.message + '</span>';
+  }
+}
 
-      function toggleSound() {
-        AppState.soundEnabled = !AppState.soundEnabled;
-        document.getElementById("soundToggle").classList.toggle("muted", !AppState.soundEnabled);
-        playSound("click");
-        showToast(AppState.soundEnabled ? "🔊 Suara aktif" : "🔇 Suara mati");
-      }
+function toggleScanner() { AppState.scannerRunning ? stopScanner() : startScanner(); }
 
-      function toggleTheme() {
-        AppState.lightMode = !AppState.lightMode;
-        document.body.classList.toggle("light-mode", AppState.lightMode);
-        document.getElementById("themeToggle").innerHTML = AppState.lightMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-        playSound("click");
-      }
+function startScanner() {
+  if (AppState.scannerRunning) return;
+  if (AppState.html5QrCode) { try { AppState.html5QrCode.clear(); AppState.html5QrCode = null; } catch(e) {} }
+  const el = document.getElementById("qr-reader"); if (el) el.innerHTML = "";
+  DOM.btnStartScan.classList.add("stop");
+  DOM.btnStartScan.innerHTML = '<i class="fas fa-stop"></i> <span>Berhenti</span>';
+  try {
+    AppState.html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
+    const cfg = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
+    AppState.html5QrCode.start({ facingMode: "environment" }, cfg, onScanSuccess, onScanError)
+      .then(() => { AppState.scannerRunning = true; DOM.scanStatus.innerHTML = '<i class="fas fa-water"></i> Memindai...'; showStatus("Kamera aktif", "info", 2500); })
+      .catch(() => {
+        AppState.html5QrCode.start({ facingMode: "user" }, cfg, onScanSuccess, onScanError)
+          .then(() => { AppState.scannerRunning = true; showStatus("Kamera depan aktif", "info", 2500); })
+          .catch(() => { showStatus("Gagal akses kamera", "error"); resetScanBtn(); });
+      });
+  } catch(e) { showStatus("Pemindai gagal dimuat", "error"); resetScanBtn(); }
+}
 
-      function generateQRCodeToElement(element, text, size) {
-        if (!element) return null;
-        element.innerHTML = "";
-        if (typeof QRCode === "undefined") { element.innerHTML = '<div style="color:#000;padding:20px;font-size:11px;">QR Library tidak tersedia</div>'; return null; }
-        try { return new QRCode(element, { text: text, width: size || 185, height: size || 185, colorDark: "#0a1628", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M }); }
-        catch (e) { console.error(e); return null; }
-      }
+function onScanError() {}
 
-      function getQRDataURL(element) {
-        if (!element) return null;
-        const canvas = element.querySelector("canvas");
-        if (canvas) return canvas.toDataURL("image/png");
-        const img = element.querySelector("img");
-        return img ? img.src : null;
-      }
+function stopScanner() {
+  if (AppState.html5QrCode && AppState.scannerRunning) {
+    AppState.html5QrCode.stop().then(() => { AppState.html5QrCode.clear(); AppState.html5QrCode = null; AppState.scannerRunning = false; resetScanBtn(); }).catch(() => {});
+  } else { AppState.scannerRunning = false; resetScanBtn(); }
+}
 
-      function generateQR() {
-        const qrData = { nim: "ABSENSI-KELAS", nama: "Presensi Kelas", link_sheet: SHEET_URL, timestamp: new Date().toISOString() };
-        setTimeout(() => { generateQRCodeToElement(DOM.qrImage, JSON.stringify(qrData), 185); }, 100);
-      }
+function resetScanBtn() { DOM.btnStartScan.classList.remove("stop"); DOM.btnStartScan.innerHTML = '<i class="fas fa-play"></i> <span>Mulai Pindai</span>'; }
 
-      function downloadQR() {
-        const dataUrl = getQRDataURL(DOM.qrImage);
-        if (!dataUrl) return showToast("❌ QR belum siap");
-        const link = document.createElement("a");
-        link.download = "qr-presensi.png"; link.href = dataUrl; link.click();
-        playSound("click"); showToast("✅ QR diunduh");
-      }
+function onScanSuccess(txt) {
+  if (AppState.isProcessing) return;
+  AppState.isProcessing = true;
+  playSound("scan");
+  if (navigator.vibrate) navigator.vibrate(100);
+  if (AppState.html5QrCode && AppState.scannerRunning) AppState.html5QrCode.stop().then(() => { AppState.scannerRunning = false; resetScanBtn(); }).catch(() => {});
+  processPresensi(txt);
+}
 
-      function generateQRCode() {
-        const nim = DOM.qrNimInput.value.trim();
-        if (!nim || nim.length < 3) { showStatus("NIM minimal 3 angka", "error"); playSound("error"); return; }
-        const mhs = AppState.mahasiswaData.find((m) => m.nim === nim);
-        if (!mhs) { showStatus("NIM " + nim + " tidak terdaftar", "error"); playSound("error"); return; }
-        const qrData = { nim: mhs.nim, nama: mhs.nama, kelas: mhs.kelas, jurusan: mhs.jurusan, link_sheet: SHEET_URL, timestamp: new Date().toISOString() };
-        DOM.qrResultImage.innerHTML = "";
-        generateQRCodeToElement(DOM.qrResultImage, JSON.stringify(qrData), 175);
-        DOM.qrInfo.innerHTML = "<strong>NIM</strong>" + mhs.nim + "<br><strong>Nama</strong>" + mhs.nama + "<br><strong>Kelas</strong>" + mhs.kelas + "<br><strong>Jurusan</strong>" + mhs.jurusan;
-        DOM.qrPreview.classList.add("show");
-        showStatus("QR " + mhs.nama + " siap", "success");
-        playSound("success");
-      }
+async function processPresensi(qr) {
+  try {
+    showStatus("Memproses presensi", "info", 5000);
+    let nim = "";
+    try { nim = JSON.parse(qr).nim || ""; } catch(e) { nim = qr.trim(); }
+    if (!nim || nim.length < 3) { showStatus("NIM tidak valid", "error"); playSound("error"); AppState.isProcessing = false; setTimeout(startScanner, 2000); return; }
+    const m = AppState.mahasiswaData.find(x => x.nim === nim);
+    if (!m) { showStatus("NIM " + nim + " tidak terdaftar", "error"); playSound("error"); AppState.isProcessing = false; setTimeout(startScanner, 2000); return; }
+    const today = new Date().toLocaleDateString("id-ID");
+    const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
+    if (p[nim] === today) { showStatus(m.nama + " sudah presensi", "warning"); playSound("warning"); AppState.isProcessing = false; setTimeout(startScanner, 2000); return; }
+    await fetch(WEB_APP_URL, {
+      method: "POST", mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "presensi", nim: nim, nama: m.nama, kelas: m.kelas, jurusan: m.jurusan, status: "Hadir" })
+    });
+    p[nim] = today;
+    localStorage.setItem("presensiHariIni", JSON.stringify(p));
+    showStatus(m.nama + " hadir!", "success");
+    DOM.scanStatus.innerHTML = '<i class="fas fa-check"></i> Hadir';
+    DOM.presensiStatus.textContent = "Hadir";
+    playSound("success"); showToast("💖 " + m.nama + " hadir!");
+    if (navigator.vibrate) navigator.vibrate([100,50,100]);
+    updateStatusInTable(nim); updateStats();
+    setTimeout(loadDataMahasiswa, 500);
+  } catch(e) { showStatus("Error: " + e.message, "error"); playSound("error"); }
+  finally {
+    setTimeout(() => {
+      AppState.isProcessing = false;
+      DOM.scanStatus.innerHTML = '<i class="fas fa-water"></i> Arahkan ke QR Code';
+      if (!AppState.scannerRunning) startScanner();
+    }, 3000);
+  }
+}
 
-      function downloadQRCode() {
-        const dataUrl = getQRDataURL(DOM.qrResultImage);
-        if (!dataUrl) return showToast("❌ QR belum siap");
-        const link = document.createElement("a");
-        link.download = "qr-" + (DOM.qrNimInput.value.trim() || "mahasiswa") + ".png";
-        link.href = dataUrl; link.click();
-        playSound("click"); showToast("✅ QR mahasiswa diunduh");
-      }
+function toggleFlash() {
+  AppState.flashOn = !AppState.flashOn;
+  DOM.btnFlash.classList.toggle("active", AppState.flashOn);
+  try {
+    if (AppState.html5QrCode && AppState.html5QrCode._videoElement) {
+      const t = AppState.html5QrCode._videoElement.srcObject?.getVideoTracks()[0];
+      if (t && t.getCapabilities?.().torch) t.applyConstraints({ advanced: [{ torch: AppState.flashOn }] });
+    }
+  } catch(e) {}
+}
 
-      function closeQRPreview() { DOM.qrPreview.classList.remove("show"); DOM.qrNimInput.value = ""; playSound("click"); }
+async function init() {
+  console.log("🌊 Deep Ocean v8.0");
+  createBubbles(); updateClock();
+  setTimeout(() => { if (typeof QRCode !== "undefined") generateQR(); else setTimeout(generateQR, 1000); }, 300);
+  await loadDataMahasiswa();
+  setInterval(loadDataMahasiswa, 30000);
+  try {
+    if (navigator.mediaDevices?.getUserMedia) {
+      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      s.getTracks().forEach(t => t.stop());
+      setTimeout(startScanner, 1000);
+    }
+  } catch(e) {}
+  setTimeout(() => showToast("🌊 Deep Ocean v8.0 siap!"), 1500);
+}
 
-      let toastTimeout;
-      function showToast(message, duration) {
-        if (!DOM.toast) return;
-        DOM.toast.innerHTML = message;
-        DOM.toast.classList.add("show");
-        clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(() => DOM.toast.classList.remove("show"), duration || 2500);
-      }
-
-      function handleSearch(query) {
-        AppState.searchQuery = query.toLowerCase().trim();
-        DOM.clearSearch.classList.toggle("visible", !!AppState.searchQuery);
-        applyFilters();
-      }
-      function clearSearch() { DOM.searchInput.value = ""; AppState.searchQuery = ""; DOM.clearSearch.classList.remove("visible"); applyFilters(); }
-      function setFilter(filter) {
-        AppState.currentFilter = filter;
-        document.querySelectorAll(".filter-tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.filter === filter));
-        playSound("click"); applyFilters();
-      }
-
-      function applyFilters() {
-        let data = AppState.mahasiswaData;
-        if (AppState.currentFilter === "hadir") data = data.filter((m) => checkPresensiHariIni(m.nim));
-        else if (AppState.currentFilter === "belum") data = data.filter((m) => !checkPresensiHariIni(m.nim));
-        if (AppState.searchQuery) data = data.filter((m) => (m.nim || "").toLowerCase().includes(AppState.searchQuery) || (m.nama || "").toLowerCase().includes(AppState.searchQuery) || (m.kelas || "").toLowerCase().includes(AppState.searchQuery));
-        renderFilteredTable(data);
-      }
-
-      function renderFilteredTable(data) {
-        if (!DOM.tableBody || !DOM.dataTable || !DOM.loadingData) return;
-        DOM.tableBody.innerHTML = "";
-        if (!data || data.length === 0) {
-          DOM.loadingData.innerHTML = '<i class="fas fa-fish"></i> Tidak ada data cocok';
-          DOM.loadingData.style.display = "block";
-          DOM.dataTable.style.display = "none";
-          DOM.totalMahasiswa.textContent = "0 BARIS";
-          return;
-        }
-        data.forEach((mhs) => {
-          const isHadir = checkPresensiHariIni(mhs.nim);
-          const row = document.createElement("tr");
-          row.innerHTML = '<td><strong>' + (mhs.nim || "-") + '</strong></td><td>' + (mhs.nama || "-") + '</td><td>' + (mhs.kelas || "-") + '</td><td><span class="' + (isHadir ? "status-hadir" : "status-belum") + '">' + (isHadir ? "Hadir" : "Belum") + '</span></td>';
-          DOM.tableBody.appendChild(row);
-        });
-        DOM.loadingData.style.display = "none";
-        DOM.dataTable.style.display = "table";
-        DOM.totalMahasiswa.textContent = data.length + " BARIS";
-      }
-
-      function exportCSV() {
-        if (AppState.mahasiswaData.length === 0) return showToast("❌ Tidak ada data");
-        const today = new Date().toLocaleDateString("id-ID");
-        const presensiData = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
-        let csv = "NIM,Nama,Kelas,Jurusan,Status,Tanggal\n";
-        AppState.mahasiswaData.forEach((m) => {
-          const isHadir = presensiData[m.nim] === today;
-          csv += '"' + (m.nim || "") + '","' + (m.nama || "") + '","' + (m.kelas || "") + '","' + (m.jurusan || "") + '","' + (isHadir ? "Hadir" : "Belum") + '","' + today + '"\n';
-        });
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "presensi-" + today.replace(/\//g, "-") + ".csv";
-        link.click(); URL.revokeObjectURL(link.href);
-        playSound("success"); showToast("✅ File CSV diunduh");
-      }
-
-      function showHistory() {
-        DOM.modalTitle.innerHTML = '<i class="fas fa-history"></i> Riwayat 7 Hari';
-        const history = JSON.parse(localStorage.getItem("presensiHistory") || "{}");
-        const today = new Date().toLocaleDateString("id-ID");
-        const currentPresensi = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
-        let todayCount = 0;
-        AppState.mahasiswaData.forEach((m) => { if (currentPresensi[m.nim] === today) todayCount++; });
-        if (todayCount > 0 && !history[today]) history[today] = { count: todayCount, total: AppState.mahasiswaData.length };
-        const entries = Object.entries(history).sort((a, b) => new Date(b[0].split("/").reverse().join("-")) - new Date(a[0].split("/").reverse().join("-")));
-        if (entries.length === 0) DOM.modalBody.innerHTML = '<div style="text-align:center;padding:30px;"><i class="fas fa-history" style="font-size:40px;color:var(--glow-cyan);opacity:0.3;display:block;margin-bottom:16px;"></i><div style="font-family:var(--font-display);font-size:14px;color:var(--text-soft);">Belum ada riwayat</div></div>';
-        else DOM.modalBody.innerHTML = entries.slice(0, 7).map(([date, info]) => {
-          const pct = info.total > 0 ? Math.round((info.count / info.total) * 100) : 0;
-          return '<div class="history-item"><div class="history-date">📅 ' + date + '</div><div class="history-count"><span class="badge">' + info.count + ' hadir</span><span style="opacity:0.6;">dari ' + info.total + ' • ' + pct + '%</span></div></div>';
-        }).join("");
-        DOM.modalOverlay.classList.add("show");
-        playSound("click");
-      }
-
-      function closeModal(event) {
-        if (event && event.target !== DOM.modalOverlay) return;
-        DOM.modalOverlay.classList.remove("show");
-        playSound("click");
-      }
-
-      function saveHistory() {
-        const today = new Date().toLocaleDateString("id-ID");
-        const presensiData = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
-        let count = 0;
-        AppState.mahasiswaData.forEach((m) => { if (presensiData[m.nim] === today) count++; });
-        if (count > 0) {
-          const history = JSON.parse(localStorage.getItem("presensiHistory") || "{}");
-          history[today] = { count, total: AppState.mahasiswaData.length };
-          localStorage.setItem("presensiHistory", JSON.stringify(history));
-        }
-      }
-
-      function createBubbles() {
-        const container = document.getElementById("bubbles");
-        if (!container) return;
-        for (let i = 0; i < 15; i++) {
-          const b = document.createElement("div"); b.className = "bubble";
-          const size = 6 + Math.random() * 20;
-          b.style.width = size + "px"; b.style.height = size + "px";
-          b.style.left = Math.random() * 100 + "%";
-          b.style.animationDuration = 12 + Math.random() * 15 + "s";
-          b.style.animationDelay = Math.random() * 15 + "s";
-          container.appendChild(b);
-        }
-      }
-
-      function createPlankton() {
-        const container = document.getElementById("plankton");
-        if (!container) return;
-        const colors = ["#4dd9ff", "#00ffc6", "#a78bfa", "#ff7ac6"];
-        for (let i = 0; i < 20; i++) {
-          const p = document.createElement("div"); p.className = "plankton-dot";
-          p.style.left = Math.random() * 100 + "%";
-          p.style.top = Math.random() * 100 + "%";
-          p.style.background = colors[Math.floor(Math.random() * colors.length)];
-          p.style.animationDuration = 8 + Math.random() * 12 + "s";
-          p.style.animationDelay = Math.random() * 10 + "s";
-          const size = 2 + Math.random() * 3 + "px";
-          p.style.width = size; p.style.height = size;
-          container.appendChild(p);
-        }
-      }
-
-      function updateClock() {
-        if (!DOM.liveTime) return;
-        const t = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Asia/Jakarta" });
-        DOM.liveTime.textContent = t + " WIB";
-      }
-      setInterval(updateClock, 1000); updateClock();
-
-      function setConnectionStatus(status, message) {
-        if (!DOM.statusDot) return;
-        DOM.statusDot.className = "dot " + status;
-        DOM.statusLabel.textContent = message;
-        AppState.isOnline = status === "online";
-      }
-
-      function showStatus(message, type, duration) {
-        if (!DOM.status) return;
-        const iconMap = { success: "fa-check-circle", error: "fa-exclamation-circle", warning: "fa-triangle-exclamation", info: "fa-info-circle" };
-        DOM.status.innerHTML = '<i class="fas ' + (iconMap[type] || iconMap.info) + '"></i> <span>' + message + '</span>';
-        DOM.status.className = type;
-        DOM.status.style.display = "flex";
-        clearTimeout(DOM.status._hideTimeout);
-        if (type === "success" || type === "error") DOM.status._hideTimeout = setTimeout(() => { DOM.status.style.display = "none"; }, duration || 4000);
-      }
-
-      function updateStats() {
-        const total = AppState.mahasiswaData.length;
-        let hadir = 0;
-        const presensiData = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
-        const today = new Date().toLocaleDateString("id-ID");
-        AppState.mahasiswaData.forEach((m) => { if (presensiData[m.nim] === today) hadir++; });
-        if (DOM.statTotal) DOM.statTotal.textContent = total;
-        if (DOM.statHadir) DOM.statHadir.textContent = hadir;
-        if (DOM.statBelum) DOM.statBelum.textContent = total - hadir;
-        if (total > 0) saveHistory();
-      }
-
-      async function checkConnection() {
-        setConnectionStatus("checking", "Menghubungkan");
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
-          const response = await fetch(WEB_APP_URL + "?action=ping", { method: "GET", signal: controller.signal, headers: { Accept: "application/json" } });
-          clearTimeout(timeoutId);
-          if (response.ok) { setConnectionStatus("online", "Terhubung"); return true; }
-          throw new Error("No response");
-        } catch (e) { setConnectionStatus("offline", "Terputus"); return false; }
-      }
-
-      function checkPresensiHariIni(nim) {
-        const presensiData = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
-        const today = new Date().toLocaleDateString("id-ID");
-        return presensiData[nim] === today;
-      }
-
-      function updateStatusInTable(nim) {
-        if (!DOM.tableBody) return;
-        DOM.tableBody.querySelectorAll("tr").forEach((row) => {
-          const td = row.querySelector("td:first-child");
-          if (td && td.textContent.trim() === nim) {
-            const statusTd = row.querySelector("td:last-child");
-            if (statusTd) statusTd.innerHTML = '<span class="status-hadir"><i class="fas fa-check"></i> Hadir</span>';
-          }
-        });
-        updateStats();
-      }
-
-      async function loadDataMahasiswa() {
-        if (!DOM.loadingData) return;
-        DOM.loadingData.style.display = "block";
-        DOM.dataTable.style.display = "none";
-        DOM.loadingData.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyelami data...';
-        try {
-          const isOnline = await checkConnection();
-          if (!isOnline) {
-            const cached = localStorage.getItem("mahasiswaData");
-            if (cached) { const parsed = JSON.parse(cached); if (parsed.length > 0) { AppState.mahasiswaData = parsed; applyFilters(); updateStats(); showStatus(parsed.length + " data dari cache", "warning", 3000); return; } }
-            DOM.loadingData.innerHTML = '<i class="fas fa-wifi" style="color:var(--glow-pink);"></i> Tidak ada koneksi';
-            return;
-          }
-          const response = await fetch(WEB_APP_URL + "?action=get_all", { method: "GET", headers: { Accept: "application/json" }, signal: AbortSignal.timeout(15000) });
-          if (!response.ok) throw new Error("HTTP " + response.status);
-          const data = await response.json();
-          if (data && Array.isArray(data) && data.length > 0) {
-            AppState.mahasiswaData = data;
-            localStorage.setItem("mahasiswaData", JSON.stringify(data));
-            applyFilters(); updateStats();
-            setConnectionStatus("online", "Terhubung");
-            showStatus(data.length + " data dimuat", "success", 2500);
-          } else {
-            DOM.loadingData.innerHTML = '<i class="fas fa-fish" style="color:var(--glow-cyan);"></i> Belum ada data';
-            DOM.totalMahasiswa.textContent = "0 BARIS";
-          }
-        } catch (error) {
-          const cached = localStorage.getItem("mahasiswaData");
-          if (cached) { const parsed = JSON.parse(cached); if (parsed.length > 0) { AppState.mahasiswaData = parsed; applyFilters(); updateStats(); return; } }
-          DOM.loadingData.innerHTML = '<i class="fas fa-exclamation-circle" style="color:var(--glow-pink);"></i> Gagal memuat<br><span style="font-size:11px;opacity:0.7;">' + error.message + '</span>';
-          setConnectionStatus("offline", "Terputus");
-        }
-      }
-
-      function toggleScanner() { AppState.scannerRunning ? stopScanner() : startScanner(); }
-
-      function startScanner() {
-        if (AppState.scannerRunning) return;
-        if (AppState.html5QrCode) { try { AppState.html5QrCode.clear(); AppState.html5QrCode = null; } catch (e) {} }
-        const readerEl = document.getElementById("qr-reader");
-        if (readerEl) readerEl.innerHTML = "";
-        if (DOM.btnStartScan) { DOM.btnStartScan.classList.add("stop"); DOM.btnStartScan.innerHTML = '<i class="fas fa-stop"></i> <span>Berhenti</span>'; }
-        try {
-          AppState.html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
-          const config = { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: 1.0 };
-          AppState.html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanError)
-            .then(() => { AppState.scannerRunning = true; if (DOM.scanStatus) DOM.scanStatus.innerHTML = '<i class="fas fa-water"></i> Memindai...'; showStatus("Kamera aktif", "info", 2500); })
-            .catch(() => {
-              AppState.html5QrCode.start({ facingMode: "user" }, config, onScanSuccess, onScanError)
-                .then(() => { AppState.scannerRunning = true; showStatus("Kamera depan aktif", "info", 2500); })
-                .catch(() => { showStatus("Gagal akses kamera", "error"); resetScannerButton(); });
-            });
-        } catch (e) { showStatus("Pemindai gagal dimuat", "error"); resetScannerButton(); }
-      }
-
-      function onScanError() {}
-
-      function stopScanner() {
-        if (AppState.html5QrCode && AppState.scannerRunning) {
-          AppState.html5QrCode.stop().then(() => { AppState.html5QrCode.clear(); AppState.html5QrCode = null; AppState.scannerRunning = false; resetScannerButton(); }).catch(() => {});
-        } else { AppState.scannerRunning = false; resetScannerButton(); }
-      }
-
-      function resetScannerButton() {
-        if (!DOM.btnStartScan) return;
-        DOM.btnStartScan.classList.remove("stop");
-        DOM.btnStartScan.innerHTML = '<i class="fas fa-play"></i> <span>Mulai Pindai</span>';
-      }
-
-      function onScanSuccess(decodedText) {
-        if (AppState.isProcessing) return;
-        AppState.isProcessing = true;
-        playSound("scan");
-        if (navigator.vibrate) navigator.vibrate(100);
-        if (AppState.html5QrCode && AppState.scannerRunning) AppState.html5QrCode.stop().then(() => { AppState.scannerRunning = false; resetScannerButton(); }).catch(() => {});
-        processPresensi(decodedText);
-      }
-
-      async function processPresensi(qrData) {
-        try {
-          showStatus("Memproses presensi", "info", 5000);
-          let nim = "";
-          try { const data = JSON.parse(qrData); nim = data.nim || ""; } catch (e) { nim = qrData.trim(); }
-          if (!nim || nim.length < 3) { showStatus("NIM tidak valid", "error"); playSound("error"); AppState.isProcessing = false; setTimeout(startScanner, 2000); return; }
-          const mhs = AppState.mahasiswaData.find((m) => m.nim === nim);
-          if (!mhs) { showStatus("NIM " + nim + " tidak terdaftar", "error"); playSound("error"); AppState.isProcessing = false; setTimeout(startScanner, 2000); return; }
-          const today = new Date().toLocaleDateString("id-ID");
-          const presensiData = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
-          if (presensiData[nim] === today) { showStatus(mhs.nama + " sudah presensi", "warning"); playSound("warning"); AppState.isProcessing = false; setTimeout(startScanner, 2000); return; }
-          await fetch(WEB_APP_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "presensi", nim: nim, nama: mhs.nama, kelas: mhs.kelas, jurusan: mhs.jurusan, status: "Hadir", waktu: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) }) });
-          presensiData[nim] = today;
-          localStorage.setItem("presensiHariIni", JSON.stringify(presensiData));
-          showStatus(mhs.nama + " hadir!", "success");
-          if (DOM.scanStatus) DOM.scanStatus.innerHTML = '<i class="fas fa-check"></i> Hadir';
-          if (DOM.presensiStatus) DOM.presensiStatus.textContent = "Hadir";
-          playSound("success"); showToast("💖 " + mhs.nama + " hadir!");
-          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-          updateStatusInTable(nim); updateStats();
-          setTimeout(loadDataMahasiswa, 500);
-        } catch (error) { showStatus("Error: " + error.message, "error"); playSound("error"); }
-        finally { setTimeout(() => { AppState.isProcessing = false; if (DOM.scanStatus) DOM.scanStatus.innerHTML = '<i class="fas fa-water"></i> Arahkan ke QR Code'; if (!AppState.scannerRunning) startScanner(); }, 3000); }
-      }
-
-      function toggleFlash() {
-        AppState.flashOn = !AppState.flashOn;
-        if (!DOM.btnFlash) return;
-        DOM.btnFlash.classList.toggle("active", AppState.flashOn);
-        playSound("click");
-        try { if (AppState.html5QrCode && AppState.html5QrCode._videoElement) { const track = AppState.html5QrCode._videoElement.srcObject?.getVideoTracks()[0]; if (track && track.getCapabilities?.().torch) track.applyConstraints({ advanced: [{ torch: AppState.flashOn }] }); } } catch (e) {}
-      }
-
-      async function checkCameraPermission() {
-        try {
-          if (!navigator.mediaDevices?.getUserMedia) { showStatus("Browser tidak mendukung kamera", "error"); return false; }
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-          stream.getTracks().forEach((t) => t.stop());
-          return true;
-        } catch (e) { showStatus("Izin kamera diperlukan", "error"); return false; }
-      }
-
-      async function init() {
-        console.log("%c🌊 Presensi Kelas · Deep Ocean v8.0", "color:#4dd9ff;background:#0a1628;font-size:14px;font-weight:bold;padding:12px 24px;font-family:'Cinzel',serif;");
-        setTimeout(() => { if (typeof QRCode === "undefined") { console.error("QRCode.js gagal dimuat"); showToast("❌ QR Library gagal"); } else { console.log("✅ QRCode.js loaded"); generateQR(); } }, 300);
-        createBubbles(); createPlankton(); updateClock();
-        if (DOM.presensiStatus) DOM.presensiStatus.textContent = "Menunggu scan";
-        await checkConnection();
-        await loadDataMahasiswa();
-        setInterval(loadDataMahasiswa, 30000);
-        const camReady = await checkCameraPermission();
-        if (camReady) setTimeout(startScanner, 800);
-        setTimeout(() => { showToast("🌊 Deep Ocean v8.0 siap!"); }, 1500);
-      }
-
-      document.addEventListener("DOMContentLoaded", init);
-      window.addEventListener("beforeunload", () => { if (AppState.html5QrCode && AppState.scannerRunning) { AppState.html5QrCode.stop().then(() => { AppState.html5QrCode.clear(); AppState.html5QrCode = null; }).catch(() => {}); } });
-    </script>
-  </body>
+document.addEventListener("DOMContentLoaded", init);
+window.addEventListener("beforeunload", () => {
+  if (AppState.html5QrCode && AppState.scannerRunning) AppState.html5QrCode.stop().then(() => AppState.html5QrCode.clear()).catch(() => {});
+});
+</script>
+</body>
 </html>
