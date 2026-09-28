@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Presensi Kelas · Deep Ocean</title>
+<title>Presensi Kelas · Dashboard</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -17,72 +17,107 @@
   --text-main: #e6f4ff; --text-soft: #a8c8e8; --text-dim: #5a7ba8;
   --font-display: "Cinzel", serif; --font-body: "DM Sans", sans-serif;
 }
-body { font-family: var(--font-body); background: var(--deep-1); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 20px 12px 60px; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--font-body); background: var(--deep-1); color: var(--text-main); min-height: 100vh; padding: 20px 12px 60px; -webkit-font-smoothing: antialiased; }
 .ocean-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(91,141,239,0.35) 0%, transparent 60%), radial-gradient(ellipse 50% 30% at 20% 100%, rgba(0,255,198,0.15) 0%, transparent 60%), linear-gradient(180deg, var(--deep-1) 0%, var(--deep-2) 40%, var(--deep-3) 70%, #060e1c 100%); }
 .bubbles { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
 .bubble { position: absolute; bottom: -50px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, rgba(77,217,255,0.15) 30%, transparent 100%); border: 1px solid rgba(77,217,255,0.3); animation: bubbleRise linear infinite; }
 @keyframes bubbleRise { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(-110vh) scale(1.1); opacity: 0; } }
-.toggle-controls { position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; gap: 8px; }
-.toggle-btn { width: 42px; height: 42px; border-radius: 50%; background: rgba(10,22,40,0.7); border: 1px solid rgba(77,217,255,0.3); color: var(--glow-cyan); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.aquarium { position: relative; z-index: 10; max-width: 560px; width: 100%; background: linear-gradient(180deg, rgba(13,31,58,0.9), rgba(10,22,40,0.95)); border-radius: 30px; border: 2px solid rgba(77,217,255,0.25); box-shadow: 0 20px 60px rgba(0,0,0,0.5); overflow: hidden; }
-.water-surface { height: 8px; background: linear-gradient(90deg, transparent, rgba(77,217,255,0.6), rgba(0,255,198,0.4), transparent); }
-.header { padding: 32px 24px 24px; text-align: center; border-bottom: 1px solid rgba(77,217,255,0.15); }
-.header-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: rgba(77,217,255,0.08); border: 1px solid rgba(77,217,255,0.3); border-radius: 30px; font-size: 10px; font-weight: 500; letter-spacing: 2px; color: var(--glow-cyan); text-transform: uppercase; margin-bottom: 14px; }
-h1 { font-family: var(--font-display); font-weight: 600; font-size: 32px; letter-spacing: 1px; margin-bottom: 6px; text-shadow: 0 0 30px rgba(77,217,255,0.5); }
+.container { position: relative; z-index: 10; max-width: 1100px; margin: 0 auto; }
+.topbar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: linear-gradient(180deg, rgba(13,31,58,0.9), rgba(10,22,40,0.95)); border-radius: 24px; border: 2px solid rgba(77,217,255,0.25); margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 12px; font-family: var(--font-display); font-size: 18px; color: var(--glow-cyan); }
+.brand i { font-size: 24px; }
+.clock-strip { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px; background: rgba(77,217,255,0.08); border: 1px solid rgba(77,217,255,0.2); border-radius: 30px; font-family: var(--font-display); font-size: 13px; color: var(--glow-cyan); }
+.pulse-orb { width: 8px; height: 8px; border-radius: 50%; background: var(--glow-teal); box-shadow: 0 0 10px var(--glow-teal); }
+.tabs { display: flex; gap: 8px; overflow-x: auto; padding: 4px; margin-bottom: 20px; }
+.tab { padding: 12px 20px; background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.2); border-radius: 14px; color: var(--text-soft); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-family: inherit; font-weight: 500; }
+.tab.active { background: linear-gradient(135deg, var(--glow-cyan), var(--glow-blue)); color: var(--deep-1); border-color: transparent; font-weight: 700; }
+.tab i { font-size: 14px; }
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.aquarium { background: linear-gradient(180deg, rgba(13,31,58,0.9), rgba(10,22,40,0.95)); border-radius: 24px; border: 2px solid rgba(77,217,255,0.25); box-shadow: 0 20px 60px rgba(0,0,0,0.5); overflow: hidden; margin-bottom: 20px; }
+.water-surface { height: 6px; background: linear-gradient(90deg, transparent, rgba(77,217,255,0.6), rgba(0,255,198,0.4), transparent); }
+.header { padding: 28px 24px 20px; text-align: center; border-bottom: 1px solid rgba(77,217,255,0.15); }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: 28px; letter-spacing: 1px; margin-bottom: 6px; text-shadow: 0 0 30px rgba(77,217,255,0.5); }
 h1 .accent { background: linear-gradient(135deg, var(--glow-cyan), var(--glow-teal), var(--glow-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .subtitle { font-weight: 300; font-size: 11px; letter-spacing: 3px; color: var(--text-soft); text-transform: uppercase; }
-.clock-strip { display: inline-flex; align-items: center; gap: 10px; margin-top: 16px; padding: 8px 18px; background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.15); border-radius: 30px; font-family: var(--font-display); font-size: 13px; color: var(--glow-cyan); }
-.clock-strip .pulse-orb { width: 8px; height: 8px; border-radius: 50%; background: var(--glow-teal); box-shadow: 0 0 10px var(--glow-teal); }
 .content { padding: 24px 22px 28px; }
-.sec-title { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 12px; letter-spacing: 3px; color: var(--glow-cyan); text-transform: uppercase; margin: 12px 0 14px; }
+.sec-title { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 12px; letter-spacing: 3px; color: var(--glow-cyan); text-transform: uppercase; margin: 16px 0 14px; }
 .sec-title::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--glow-teal); box-shadow: 0 0 10px var(--glow-teal); }
 .sec-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(77,217,255,0.4), transparent); }
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-.stat-card { background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.2); border-radius: 16px; padding: 16px 8px 14px; text-align: center; }
-.stat-card .emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.2); border-radius: 16px; padding: 18px 12px 16px; text-align: center; position: relative; overflow: hidden; }
+.stat-card::before { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 50%; height: 2px; background: var(--glow-cyan); }
+.stat-card .emoji { font-size: 22px; display: block; margin-bottom: 6px; }
 .stat-card .num { font-family: var(--font-display); font-size: 26px; font-weight: 700; line-height: 1; margin-bottom: 4px; color: var(--glow-cyan); }
 .stat-card.hadir .num { color: var(--glow-teal); }
 .stat-card.belum .num { color: var(--glow-pink); }
+.stat-card.pct .num { color: var(--glow-gold); }
 .stat-card .lbl { font-size: 9px; letter-spacing: 2px; color: var(--text-soft); text-transform: uppercase; }
+.chart-panel { background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.2); border-radius: 18px; padding: 18px; margin-bottom: 20px; }
+.chart { display: flex; align-items: flex-end; justify-content: space-between; gap: 6px; height: 130px; padding-top: 20px; }
+.bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; position: relative; }
+.bar { width: 100%; max-width: 36px; background: linear-gradient(180deg, var(--glow-teal), var(--glow-cyan)); border-radius: 6px 6px 2px 2px; min-height: 4px; position: relative; transition: all 0.3s; }
+.bar.empty { background: rgba(90,123,168,0.25); }
+.bar-wrap .bar-val { position: absolute; top: -18px; font-size: 10px; color: var(--glow-teal); font-weight: 600; }
+.bar-wrap .bar-day { position: absolute; bottom: -20px; font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.bar-wrap .bar-day.today { color: var(--glow-gold); font-weight: 700; }
+.leaderboard { display: flex; flex-direction: column; gap: 8px; }
+.lb-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: rgba(77,217,255,0.05); border-radius: 12px; }
+.lb-rank { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 12px; background: rgba(90,123,168,0.2); color: var(--text-soft); flex-shrink: 0; }
+.lb-item.gold .lb-rank { background: linear-gradient(135deg, #ffd966, #ff9a3c); color: var(--deep-1); }
+.lb-item.silver .lb-rank { background: linear-gradient(135deg, #e0e8f0, #a8b8c8); color: var(--deep-1); }
+.lb-item.bronze .lb-rank { background: linear-gradient(135deg, #cd7f32, #a05a1c); color: #fff; }
+.lb-name { flex: 1; font-size: 13px; color: var(--text-main); }
+.lb-sub { font-size: 10px; color: var(--text-dim); }
+.lb-count { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--glow-teal); }
+/* Kalender */
+.calendar { background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.2); border-radius: 18px; padding: 18px; }
+.cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.cal-title { font-family: var(--font-display); font-size: 14px; color: var(--glow-cyan); letter-spacing: 2px; text-transform: uppercase; }
+.cal-nav { display: flex; gap: 6px; }
+.cal-nav button { width: 30px; height: 30px; border-radius: 50%; background: rgba(77,217,255,0.1); border: 1px solid rgba(77,217,255,0.25); color: var(--glow-cyan); cursor: pointer; font-size: 12px; }
+.cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 6px; }
+.cal-wd { text-align: center; font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; padding: 4px 0; }
+.cal-wd.we { color: var(--glow-pink); }
+.cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 11px; color: var(--text-soft); background: rgba(77,217,255,0.03); cursor: pointer; position: relative; }
+.cal-day:hover:not(.empty) { background: rgba(77,217,255,0.15); }
+.cal-day.empty { background: transparent; cursor: default; }
+.cal-day.today { background: rgba(255,217,102,0.15); border: 1.5px solid var(--glow-gold); color: var(--glow-gold); font-weight: 700; }
+.cal-day.done::after { content: ""; position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--glow-teal); box-shadow: 0 0 6px var(--glow-teal); }
+.cal-day.partial::after { background: var(--glow-gold); box-shadow: 0 0 6px var(--glow-gold); }
+/* Perbandingan kelas */
+.class-list { display: flex; flex-direction: column; gap: 10px; }
+.class-item { padding: 14px 16px; background: rgba(77,217,255,0.05); border-radius: 12px; }
+.class-head { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
+.class-name { color: var(--text-main); font-weight: 600; }
+.class-pct { color: var(--glow-teal); font-weight: 700; }
+.class-bar { height: 8px; background: rgba(10,22,40,0.6); border-radius: 4px; overflow: hidden; }
+.class-fill { height: 100%; background: linear-gradient(90deg, var(--glow-teal), var(--glow-cyan)); border-radius: 4px; transition: width 0.8s; }
+.need-attention { display: flex; flex-direction: column; gap: 8px; }
+.att-item { display: flex; justify-content: space-between; padding: 10px 14px; background: rgba(255,217,102,0.08); border-left: 3px solid var(--glow-gold); border-radius: 8px; font-size: 12px; }
+.att-item .name { color: var(--text-main); }
+.att-item .info { color: var(--glow-gold); font-weight: 600; }
+.btn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+.bubble-btn { padding: 12px 6px; background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.25); border-radius: 14px; color: var(--text-soft); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; font-family: inherit; }
+.bubble-btn i { font-size: 15px; color: var(--glow-cyan); }
+.bubble-btn:hover { background: rgba(77,217,255,0.12); border-color: var(--glow-cyan); }
+.gen-panel { background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.2); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
+.gen-label { font-size: 10px; letter-spacing: 2px; color: var(--glow-teal); text-transform: uppercase; margin-bottom: 10px; }
+.input-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.input-row input { flex: 1; min-width: 200px; padding: 12px 14px; background: rgba(10,22,40,0.6); border: 1px solid rgba(77,217,255,0.25); border-radius: 12px; color: var(--text-main); font-size: 13px; font-family: inherit; }
+.input-row input::placeholder { color: var(--text-dim); font-style: italic; }
+.input-row input:focus { outline: none; border-color: var(--glow-cyan); }
+.input-row button { padding: 12px 18px; background: linear-gradient(135deg, var(--glow-cyan), var(--glow-blue)); border: none; border-radius: 12px; color: var(--deep-1); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; white-space: nowrap; font-family: inherit; }
 .qr-bubble { text-align: center; padding: 20px; background: rgba(77,217,255,0.04); border-radius: 20px; margin-bottom: 20px; }
 .qr-canvas-wrap { display: inline-block; background: #fff; padding: 12px; border-radius: 16px; box-shadow: 0 0 40px rgba(77,217,255,0.4); }
 .qr-canvas-wrap canvas, .qr-canvas-wrap img { display: block !important; width: 180px !important; height: 180px !important; }
 .qr-caption { margin-top: 12px; font-size: 11px; letter-spacing: 2px; color: var(--text-soft); text-transform: uppercase; }
-.btn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
-.bubble-btn { padding: 12px 6px; background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.25); border-radius: 14px; color: var(--text-soft); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; }
-.bubble-btn i { font-size: 15px; color: var(--glow-cyan); }
-.quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
-.quick-btn { padding: 10px 12px; background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.2); border-radius: 12px; color: var(--text-soft); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-.quick-btn i { color: var(--glow-cyan); font-size: 12px; }
-.gen-panel { background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.2); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
-.gen-label { font-size: 10px; letter-spacing: 2px; color: var(--glow-teal); text-transform: uppercase; margin-bottom: 10px; }
-.input-row { display: flex; gap: 8px; }
-.input-row input { flex: 1; padding: 12px 14px; background: rgba(10,22,40,0.6); border: 1px solid rgba(77,217,255,0.25); border-radius: 12px; color: var(--text-main); font-size: 13px; }
-.input-row input::placeholder { color: var(--text-dim); font-style: italic; }
-.input-row input:focus { outline: none; border-color: var(--glow-cyan); }
-.input-row button { padding: 12px 18px; background: linear-gradient(135deg, var(--glow-cyan), var(--glow-blue)); border: none; border-radius: 12px; color: var(--deep-1); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
-.qr-preview { display: none; margin-top: 14px; padding: 16px; background: rgba(10,22,40,0.6); border: 1px solid rgba(77,217,255,0.3); border-radius: 14px; text-align: center; }
-.qr-preview.show { display: block !important; }
-.qr-preview-canvas { display: inline-block; background: #fff; padding: 10px; border-radius: 10px; margin-bottom: 12px; }
-.qr-preview .qr-info { font-size: 12px; line-height: 1.9; text-align: left; padding: 12px 14px; background: rgba(77,217,255,0.06); border-left: 2px solid var(--glow-cyan); border-radius: 8px; color: var(--text-soft); margin-bottom: 12px; }
-.qr-preview .qr-info strong { font-family: var(--font-display); font-size: 10px; letter-spacing: 1.5px; color: var(--glow-cyan); text-transform: uppercase; display: inline-block; min-width: 70px; }
-.qr-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.qr-actions button { padding: 10px; border-radius: 10px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; border: none; }
-.qr-actions button:first-child { background: linear-gradient(135deg, var(--glow-teal), var(--glow-cyan)); color: var(--deep-1); }
-.qr-actions button:last-child { background: transparent; color: var(--glow-pink); border: 1px solid rgba(255,122,198,0.4); }
-.conn-orb { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.15); border-radius: 30px; font-size: 10px; letter-spacing: 2px; color: var(--text-soft); text-transform: uppercase; margin-bottom: 18px; }
-.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.dot.online { background: var(--glow-teal); box-shadow: 0 0 10px var(--glow-teal); }
-.dot.offline { background: var(--glow-pink); box-shadow: 0 0 10px var(--glow-pink); }
-.dot.checking { background: var(--glow-gold); box-shadow: 0 0 10px var(--glow-gold); }
-#status { display: none; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 14px; font-size: 11px; letter-spacing: 0.5px; margin-bottom: 18px; border: 1px solid; }
-#status.success { display: flex; background: rgba(0,255,198,0.1); color: var(--glow-teal); border-color: rgba(0,255,198,0.4); }
-#status.error { display: flex; background: rgba(255,122,198,0.1); color: var(--glow-pink); border-color: rgba(255,122,198,0.4); }
-#status.warning { display: flex; background: rgba(255,217,102,0.1); color: var(--glow-gold); border-color: rgba(255,217,102,0.4); }
-#status.info { display: flex; background: rgba(77,217,255,0.1); color: var(--glow-cyan); border-color: rgba(77,217,255,0.4); }
+/* Scanner */
 .scanner-shell { padding: 10px; background: rgba(77,217,255,0.05); border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(77,217,255,0.2); }
-.scanner-inner { background: #000; border-radius: 14px; overflow: hidden; position: relative; min-height: 260px; }
-#qr-reader { width: 100% !important; min-height: 260px; background: #000; }
+.scanner-inner { background: #000; border-radius: 14px; overflow: hidden; position: relative; min-height: 300px; }
+#qr-reader { width: 100% !important; min-height: 300px; background: #000; }
 #qr-reader video { width: 100% !important; display: block !important; }
 #qr-reader > div:not(:first-child) { display: none !important; }
 .scan-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
@@ -96,25 +131,24 @@ h1 .accent { background: linear-gradient(135deg, var(--glow-cyan), var(--glow-te
 @keyframes scanWave { 0% { top: 12%; opacity: 0.4; } 100% { top: 88%; opacity: 0.4; } }
 .scan-hint { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); padding: 6px 16px; background: rgba(10,22,40,0.9); border: 1px solid rgba(77,217,255,0.4); border-radius: 30px; color: var(--glow-cyan); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; z-index: 15; }
 .scan-controls { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-bottom: 22px; }
-.scan-controls button { padding: 14px; border-radius: 14px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; border: none; }
+.scan-controls button { padding: 14px; border-radius: 14px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; border: none; font-family: inherit; }
 .btn-scan-ocean { background: linear-gradient(135deg, var(--glow-cyan), var(--glow-blue), var(--glow-purple)); color: var(--deep-1); font-weight: 700; }
 .btn-scan-ocean.stop { background: linear-gradient(135deg, var(--glow-pink), #ff5a7a); color: white; }
 .btn-flash-ocean { background: rgba(77,217,255,0.08); color: var(--glow-cyan); border: 1px solid rgba(77,217,255,0.35) !important; }
 .btn-flash-ocean.active { background: linear-gradient(135deg, var(--glow-gold), #ff9a3c); color: var(--deep-1); }
+/* Tabel */
 .search-wrap { position: relative; margin-bottom: 14px; }
-.search-wrap input { width: 100%; padding: 12px 16px 12px 42px; background: rgba(10,22,40,0.6); border: 1px solid rgba(77,217,255,0.25); border-radius: 12px; color: var(--text-main); font-size: 13px; }
+.search-wrap input { width: 100%; padding: 12px 16px 12px 42px; background: rgba(10,22,40,0.6); border: 1px solid rgba(77,217,255,0.25); border-radius: 12px; color: var(--text-main); font-size: 13px; font-family: inherit; }
 .search-wrap input::placeholder { color: var(--text-dim); font-style: italic; }
 .search-wrap input:focus { outline: none; border-color: var(--glow-cyan); }
 .search-wrap .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--glow-cyan); font-size: 14px; }
-.search-wrap .clear-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 6px; display: none; }
-.search-wrap .clear-btn.visible { display: block; }
-.filter-tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 6px; }
-.filter-tab { padding: 7px 14px; background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.2); border-radius: 20px; color: var(--text-soft); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+.filter-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.filter-tab { padding: 7px 14px; background: rgba(77,217,255,0.06); border: 1px solid rgba(77,217,255,0.2); border-radius: 20px; color: var(--text-soft); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; white-space: nowrap; font-family: inherit; }
 .filter-tab.active { background: linear-gradient(135deg, var(--glow-cyan), var(--glow-blue)); color: var(--deep-1); border-color: transparent; }
 .data-shell { background: rgba(77,217,255,0.04); border: 1px solid rgba(77,217,255,0.18); border-radius: 18px; overflow: hidden; margin-bottom: 20px; }
 .data-head { padding: 12px 16px; background: rgba(77,217,255,0.08); border-bottom: 1px solid rgba(77,217,255,0.15); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-display); font-size: 12px; letter-spacing: 2px; color: var(--glow-cyan); text-transform: uppercase; }
-.data-head .count-badge { padding: 3px 10px; background: rgba(77,217,255,0.15); border: 1px solid rgba(77,217,255,0.3); border-radius: 20px; font-size: 10px; }
-.table-wrap { max-height: 300px; overflow-y: auto; }
+.count-badge { padding: 3px 10px; background: rgba(77,217,255,0.15); border: 1px solid rgba(77,217,255,0.3); border-radius: 20px; font-size: 10px; }
+.table-wrap { max-height: 400px; overflow-y: auto; }
 .data-shell table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .data-shell th { padding: 10px 12px; text-align: left; font-family: var(--font-display); font-size: 10px; letter-spacing: 1.5px; color: var(--glow-cyan); text-transform: uppercase; background: rgba(10,22,40,0.6); border-bottom: 1px solid rgba(77,217,255,0.15); position: sticky; top: 0; z-index: 2; }
 .data-shell td { padding: 10px 12px; border-bottom: 1px solid rgba(77,217,255,0.06); color: var(--text-soft); }
@@ -122,133 +156,206 @@ h1 .accent { background: linear-gradient(135deg, var(--glow-cyan), var(--glow-te
 .status-hadir { display: inline-block; padding: 3px 10px; background: rgba(0,255,198,0.12); border: 1px solid rgba(0,255,198,0.4); border-radius: 20px; color: var(--glow-teal); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
 .status-belum { display: inline-block; padding: 3px 10px; background: rgba(90,123,168,0.1); border: 1px solid rgba(90,123,168,0.3); border-radius: 20px; color: var(--text-dim); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
 .loading-text { padding: 30px 20px; text-align: center; font-family: var(--font-display); font-style: italic; font-size: 13px; color: var(--text-soft); }
-.loading-text i { color: var(--glow-cyan); margin-right: 8px; }
+/* Status */
+.conn-orb { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; background: rgba(77,217,255,0.05); border: 1px solid rgba(77,217,255,0.15); border-radius: 30px; font-size: 10px; letter-spacing: 2px; color: var(--text-soft); text-transform: uppercase; margin-bottom: 18px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.online { background: var(--glow-teal); box-shadow: 0 0 10px var(--glow-teal); }
+.dot.offline { background: var(--glow-pink); box-shadow: 0 0 10px var(--glow-pink); }
+.dot.checking { background: var(--glow-gold); box-shadow: 0 0 10px var(--glow-gold); }
+#status { display: none; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 14px; font-size: 11px; margin-bottom: 18px; border: 1px solid; }
+#status.success { display: flex; background: rgba(0,255,198,0.1); color: var(--glow-teal); border-color: rgba(0,255,198,0.4); }
+#status.error { display: flex; background: rgba(255,122,198,0.1); color: var(--glow-pink); border-color: rgba(255,122,198,0.4); }
+#status.warning { display: flex; background: rgba(255,217,102,0.1); color: var(--glow-gold); border-color: rgba(255,217,102,0.4); }
+#status.info { display: flex; background: rgba(77,217,255,0.1); color: var(--glow-cyan); border-color: rgba(77,217,255,0.4); }
 .footer { padding: 20px; text-align: center; border-top: 1px solid rgba(77,217,255,0.1); background: rgba(10,22,40,0.4); font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; line-height: 2; }
 .footer a { color: var(--glow-cyan); text-decoration: none; border-bottom: 1px dashed var(--glow-cyan); }
-.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); padding: 12px 20px; background: rgba(10,22,40,0.95); border: 1px solid rgba(77,217,255,0.3); border-radius: 30px; color: var(--glow-cyan); font-size: 12px; letter-spacing: 1px; z-index: 600; opacity: 0; transition: all 0.4s; max-width: 90vw; text-align: center; }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); padding: 12px 20px; background: rgba(10,22,40,0.95); border: 1px solid rgba(77,217,255,0.3); border-radius: 30px; color: var(--glow-cyan); font-size: 12px; z-index: 600; opacity: 0; transition: all 0.4s; max-width: 90vw; text-align: center; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.modal-overlay { position: fixed; inset: 0; background: rgba(6,14,28,0.85); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
-.modal-overlay.show { display: flex; }
-.modal { background: linear-gradient(180deg, rgba(13,31,58,0.98), rgba(10,22,40,0.98)); border: 1px solid rgba(77,217,255,0.3); border-radius: 20px; max-width: 440px; width: 100%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; }
-.modal-head { padding: 16px 20px 14px; border-bottom: 1px solid rgba(77,217,255,0.15); display: flex; justify-content: space-between; align-items: center; }
-.modal-title { font-family: var(--font-display); font-size: 15px; letter-spacing: 2px; color: var(--glow-cyan); text-transform: uppercase; }
-.modal-close { width: 30px; height: 30px; border-radius: 50%; background: rgba(77,217,255,0.1); border: 1px solid rgba(77,217,255,0.3); color: var(--glow-cyan); cursor: pointer; font-size: 14px; }
-.modal-body { padding: 18px 20px 22px; overflow-y: auto; }
-.history-item { padding: 12px 14px; background: rgba(77,217,255,0.05); border-left: 3px solid var(--glow-cyan); border-radius: 8px; margin-bottom: 8px; }
-.history-date { font-family: var(--font-display); font-size: 12px; color: var(--glow-cyan); letter-spacing: 1.5px; margin-bottom: 4px; }
-.history-count { font-size: 12px; color: var(--text-soft); display: flex; align-items: center; gap: 8px; }
-.history-count .badge { padding: 2px 8px; background: rgba(0,255,198,0.15); border: 1px solid rgba(0,255,198,0.4); border-radius: 10px; color: var(--glow-teal); font-size: 10px; }
-@media (max-width: 480px) { h1 { font-size: 24px; } .content { padding: 20px 16px 24px; } .stat-card .num { font-size: 22px; } .qr-canvas-wrap canvas, .qr-canvas-wrap img { width: 150px !important; height: 150px !important; } .input-row { flex-direction: column; } .input-row button { width: 100%; } }
+@media (max-width: 720px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  h1 { font-size: 22px; }
+  .brand { font-size: 14px; }
+}
 </style>
 </head>
 <body>
 <div class="ocean-bg"></div>
 <div class="bubbles" id="bubbles"></div>
 
-<div class="toggle-controls">
-  <button class="toggle-btn" id="soundToggle" onclick="toggleSound()"><i class="fas fa-volume-up" id="soundIcon"></i></button>
-  <button class="toggle-btn" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
-</div>
-
-<div class="aquarium">
-  <div class="water-surface"></div>
-
-  <div class="header">
-    <div class="header-badge"><i class="fas fa-water"></i> Deep Ocean · v8.0</div>
-    <h1>Presensi <span class="accent">Kelas</span></h1>
-    <div class="subtitle">Beneath The Waves</div>
+<div class="container">
+  <div class="topbar">
+    <div class="brand"><i class="fas fa-water"></i> Presensi Kelas</div>
     <div class="clock-strip"><span class="pulse-orb"></span><span id="liveTime">--:--:--</span></div>
   </div>
 
-  <div class="content">
-    <div class="sec-title">Kedalaman</div>
-    <div class="stats-grid">
-      <div class="stat-card"><span class="emoji">🐚</span><div class="num" id="statTotal">0</div><div class="lbl">Total</div></div>
-      <div class="stat-card hadir"><span class="emoji">🐬</span><div class="num" id="statHadir">0</div><div class="lbl">Hadir</div></div>
-      <div class="stat-card belum"><span class="emoji">🦑</span><div class="num" id="statBelum">0</div><div class="lbl">Belum</div></div>
-    </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</button>
+    <button class="tab" data-tab="scan" onclick="switchTab('scan')"><i class="fas fa-qrcode"></i> Scan QR</button>
+    <button class="tab" data-tab="data" onclick="switchTab('data')"><i class="fas fa-database"></i> Data & Rekap</button>
+    <button class="tab" data-tab="generate" onclick="switchTab('generate')"><i class="fas fa-magic"></i> Buat QR</button>
+  </div>
 
-    <div class="sec-title">Kode QR</div>
-    <div class="qr-bubble">
-      <div class="qr-canvas-wrap" id="qrImage"></div>
-      <div class="qr-caption"><i class="fas fa-water"></i> Scan untuk hadir</div>
-    </div>
-
-    <div class="btn-row">
-      <button class="bubble-btn" onclick="loadDataMahasiswa()"><i class="fas fa-sync-alt"></i><span>Segarkan</span></button>
-      <button class="bubble-btn" onclick="downloadQR()"><i class="fas fa-download"></i><span>QR</span></button>
-      <a href="https://docs.google.com/spreadsheets/d/12HEJ_ieaoshtPwGC-FkjNUrZA_HKAtXe3ip9AEuJfEE/edit" target="_blank" class="bubble-btn"><i class="fas fa-external-link-alt"></i><span>Sheet</span></a>
-    </div>
-
-    <div class="sec-title">Aksi Cepat</div>
-    <div class="quick-actions">
-      <button class="quick-btn" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Export CSV</button>
-      <button class="quick-btn" onclick="showHistory()"><i class="fas fa-history"></i> Riwayat</button>
-    </div>
-
-    <div class="sec-title">Generate Kartu</div>
-    <div class="gen-panel">
-      <div class="gen-label"><i class="fas fa-fish"></i> Buat QR mahasiswa</div>
-      <div class="input-row">
-        <input type="text" id="qrNimInput" placeholder="Masukkan NIM mahasiswa..." maxlength="20" />
-        <button onclick="generateQRCode()"><i class="fas fa-water"></i> Buat</button>
+  <!-- DASHBOARD -->
+  <div class="panel active" id="panel-dashboard">
+    <div class="aquarium">
+      <div class="water-surface"></div>
+      <div class="header">
+        <h1>Selamat Datang <span class="accent">👋</span></h1>
+        <div class="subtitle" id="todayDate">—</div>
       </div>
-      <div class="qr-preview" id="qrPreview">
-        <div class="qr-preview-canvas" id="qrResultImage"></div>
-        <div class="qr-info" id="qrInfo"></div>
-        <div class="qr-actions">
-          <button onclick="downloadQRCode()"><i class="fas fa-download"></i> Simpan</button>
-          <button onclick="closeQRPreview()"><i class="fas fa-times"></i> Tutup</button>
+      <div class="content">
+        <div class="stats-grid">
+          <div class="stat-card"><span class="emoji">🐚</span><div class="num" id="statTotal">0</div><div class="lbl">Total</div></div>
+          <div class="stat-card hadir"><span class="emoji">🐬</span><div class="num" id="statHadir">0</div><div class="lbl">Hadir</div></div>
+          <div class="stat-card belum"><span class="emoji">🦑</span><div class="num" id="statBelum">0</div><div class="lbl">Belum</div></div>
+          <div class="stat-card pct"><span class="emoji">📊</span><div class="num" id="statPct">0%</div><div class="lbl">Persen</div></div>
         </div>
-      </div>
-    </div>
 
-    <div class="conn-orb"><span class="dot checking" id="statusDot"></span><span id="statusLabel">Menghubungkan</span></div>
-    <div id="status"></div>
+        <div class="sec-title">Kehadiran 7 Hari Terakhir</div>
+        <div class="chart-panel"><div class="chart" id="weeklyChart"></div></div>
 
-    <div class="sec-title">Pemindai</div>
-    <div class="scanner-shell">
-      <div class="scanner-inner">
-        <div id="qr-reader"></div>
-        <div class="scan-overlay">
-          <div class="scan-target">
-            <div class="scan-corner scan-corner-tl"></div>
-            <div class="scan-corner scan-corner-tr"></div>
-            <div class="scan-corner scan-corner-bl"></div>
-            <div class="scan-corner scan-corner-br"></div>
-            <div class="scan-beam"></div>
+        <div class="sec-title">🏆 Top 5 Rajin (30 Hari)</div>
+        <div class="leaderboard" id="leaderboard"><div style="text-align:center;color:var(--text-dim);padding:20px;">Memuat...</div></div>
+
+        <div class="sec-title">⚠️ Perlu Perhatian</div>
+        <div class="need-attention" id="needAttention"><div style="text-align:center;color:var(--text-dim);padding:20px;">Memuat...</div></div>
+
+        <div class="sec-title">📅 Kalender Kehadiran</div>
+        <div class="calendar">
+          <div class="cal-head">
+            <div class="cal-title" id="calTitle">—</div>
+            <div class="cal-nav">
+              <button onclick="calPrev()"><i class="fas fa-chevron-left"></i></button>
+              <button onclick="calToday()"><i class="fas fa-crosshairs"></i></button>
+              <button onclick="calNext()"><i class="fas fa-chevron-right"></i></button>
+            </div>
           </div>
-          <div class="scan-hint" id="scanStatusText"><i class="fas fa-water"></i> Arahkan ke QR Code</div>
+          <div class="cal-weekdays">
+            <div class="cal-wd">Min</div><div class="cal-wd">Sen</div><div class="cal-wd">Sel</div>
+            <div class="cal-wd">Rab</div><div class="cal-wd">Kam</div><div class="cal-wd">Jum</div>
+            <div class="cal-wd we">Sab</div>
+          </div>
+          <div class="cal-days" id="calDays"></div>
+        </div>
+
+        <div class="sec-title">📊 Kehadiran Per Kelas (Hari Ini)</div>
+        <div class="class-list" id="classList"><div style="text-align:center;color:var(--text-dim);padding:20px;">Memuat...</div></div>
+
+        <div class="sec-title">📢 Belum Hadir Hari Ini</div>
+        <div class="need-attention" id="notPresent"><div style="text-align:center;color:var(--text-dim);padding:20px;">Memuat...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCAN -->
+  <div class="panel" id="panel-scan">
+    <div class="aquarium">
+      <div class="water-surface"></div>
+      <div class="header">
+        <h1>Scan <span class="accent">Presensi</span></h1>
+        <div class="subtitle">Arahkan kamera ke QR Code mahasiswa</div>
+      </div>
+      <div class="content">
+        <div class="conn-orb"><span class="dot checking" id="statusDot"></span><span id="statusLabel">Menghubungkan</span></div>
+        <div id="status"></div>
+        <div class="scanner-shell">
+          <div class="scanner-inner">
+            <div id="qr-reader"></div>
+            <div class="scan-overlay">
+              <div class="scan-target">
+                <div class="scan-corner scan-corner-tl"></div>
+                <div class="scan-corner scan-corner-tr"></div>
+                <div class="scan-corner scan-corner-bl"></div>
+                <div class="scan-corner scan-corner-br"></div>
+                <div class="scan-beam"></div>
+              </div>
+              <div class="scan-hint" id="scanStatusText"><i class="fas fa-water"></i> Arahkan ke QR Code</div>
+            </div>
+          </div>
+        </div>
+        <div class="scan-controls">
+          <button class="btn-scan-ocean" id="btnStartScan" onclick="toggleScanner()"><i class="fas fa-play"></i> <span>Mulai Pindai</span></button>
+          <button class="btn-flash-ocean" id="btnFlash" onclick="toggleFlash()"><i class="fas fa-bolt"></i></button>
+        </div>
+
+        <div class="sec-title">Baru Saja Scan</div>
+        <div class="need-attention" id="recentScan"><div style="text-align:center;color:var(--text-dim);padding:20px;">Belum ada yang scan hari ini.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA -->
+  <div class="panel" id="panel-data">
+    <div class="aquarium">
+      <div class="water-surface"></div>
+      <div class="header">
+        <h1>Daftar <span class="accent">Mahasiswa</span></h1>
+        <div class="subtitle">Lihat status, cari, atau ekspor rekap</div>
+      </div>
+      <div class="content">
+        <div class="btn-row">
+          <button class="bubble-btn" onclick="loadDataMahasiswa()"><i class="fas fa-sync-alt"></i><span>Segarkan</span></button>
+          <button class="bubble-btn" onclick="exportCSV()"><i class="fas fa-file-csv"></i><span>CSV</span></button>
+          <button class="bubble-btn" onclick="showHistory()"><i class="fas fa-history"></i><span>Riwayat</span></button>
+        </div>
+
+        <div class="search-wrap">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="searchInput" placeholder="Cari nama atau NIM..." oninput="handleSearch(this.value)" />
+        </div>
+
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="all" onclick="setFilter('all')">Semua</button>
+          <button class="filter-tab" data-filter="hadir" onclick="setFilter('hadir')">Hadir</button>
+          <button class="filter-tab" data-filter="belum" onclick="setFilter('belum')">Belum</button>
+        </div>
+
+        <div class="data-shell">
+          <div class="data-head"><span>Log Kehadiran</span><span class="count-badge" id="totalMahasiswa">0 BARIS</span></div>
+          <div class="table-wrap">
+            <div class="loading-text" id="loadingData"><i class="fas fa-spinner fa-spin"></i> Memuat data...</div>
+            <table id="dataTable" style="display: none">
+              <thead><tr><th>NIM</th><th>Nama</th><th>Kelas</th><th>Status</th></tr></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="scan-controls">
-      <button class="btn-scan-ocean" id="btnStartScan" onclick="toggleScanner()"><i class="fas fa-play"></i> <span>Mulai Pindai</span></button>
-      <button class="btn-flash-ocean" id="btnFlash" onclick="toggleFlash()"><i class="fas fa-bolt"></i></button>
-    </div>
+  <!-- GENERATE -->
+  <div class="panel" id="panel-generate">
+    <div class="aquarium">
+      <div class="water-surface"></div>
+      <div class="header">
+        <h1>Generate <span class="accent">QR Code</span></h1>
+        <div class="subtitle">Buat QR satuan atau sekaligus</div>
+      </div>
+      <div class="content">
+        <div class="sec-title">QR Satuan</div>
+        <div class="gen-panel">
+          <div class="gen-label"><i class="fas fa-fish"></i> Buat QR satu mahasiswa</div>
+          <div class="input-row">
+            <input type="text" id="qrNimInput" placeholder="Masukkan NIM mahasiswa..." maxlength="20" />
+            <button onclick="generateQRCode()"><i class="fas fa-water"></i> Buat</button>
+          </div>
+          <div id="qrPreviewSingle" style="display:none; margin-top:14px; text-align:center;">
+            <div id="qrResultImage" style="display:inline-block; background:#fff; padding:10px; border-radius:10px;"></div>
+            <div class="qr-info" id="qrInfo" style="margin-top:12px; text-align:left; font-size:12px; line-height:1.9; padding:12px 14px; background:rgba(77,217,255,0.06); border-left:2px solid var(--glow-cyan); border-radius:8px; color:var(--text-soft);"></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;">
+              <button onclick="downloadQRCode()" style="padding:10px; border-radius:10px; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; border:none; background:linear-gradient(135deg, var(--glow-teal), var(--glow-cyan)); color:var(--deep-1); font-weight:700;"><i class="fas fa-download"></i> Simpan</button>
+              <button onclick="closeSingleQR()" style="padding:10px; border-radius:10px; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; border:none; background:transparent; color:var(--glow-pink); border:1px solid rgba(255,122,198,0.4);"><i class="fas fa-times"></i> Tutup</button>
+            </div>
+          </div>
+        </div>
 
-    <div class="sec-title">Daftar Hadir</div>
-    <div class="search-wrap">
-      <i class="fas fa-search search-icon"></i>
-      <input type="text" id="searchInput" placeholder="Cari nama atau NIM..." oninput="handleSearch(this.value)" />
-      <button class="clear-btn" id="clearSearch" onclick="clearSearch()"><i class="fas fa-times"></i></button>
-    </div>
-
-    <div class="filter-tabs">
-      <button class="filter-tab active" data-filter="all" onclick="setFilter('all')">Semua</button>
-      <button class="filter-tab" data-filter="hadir" onclick="setFilter('hadir')">Hadir</button>
-      <button class="filter-tab" data-filter="belum" onclick="setFilter('belum')">Belum</button>
-    </div>
-
-    <div class="data-shell">
-      <div class="data-head"><span>Log Kehadiran</span><span class="count-badge" id="totalMahasiswa">0 BARIS</span></div>
-      <div class="table-wrap">
-        <div class="loading-text" id="loadingData"><i class="fas fa-spinner fa-spin"></i> Memuat data...</div>
-        <table id="dataTable" style="display: none">
-          <thead><tr><th>NIM</th><th>Nama</th><th>Kelas</th><th>Status</th></tr></thead>
-          <tbody id="tableBody"></tbody>
-        </table>
+        <div class="sec-title">QR Semua Mahasiswa</div>
+        <div class="gen-panel">
+          <div class="gen-label"><i class="fas fa-layer-group"></i> Buat QR untuk semua mahasiswa</div>
+          <button onclick="generateAllQR()" style="width:100%; padding:14px; background:linear-gradient(135deg, var(--glow-cyan), var(--glow-purple)); border:none; border-radius:12px; color:var(--deep-1); font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; cursor:pointer; font-family:inherit;"><i class="fas fa-magic"></i> Buat Semua QR</button>
+          <div id="qrAllGrid" style="display:none; margin-top:14px; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:10px;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -257,16 +364,6 @@ h1 .accent { background: linear-gradient(135deg, var(--glow-cyan), var(--glow-te
     <i class="fas fa-anchor"></i> Terhubung dengan
     <a href="https://docs.google.com/spreadsheets/d/12HEJ_ieaoshtPwGC-FkjNUrZA_HKAtXe3ip9AEuJfEE/edit" target="_blank">Google Sheets</a><br>
     Status · <span id="presensiStatus">Menunggu scan</span>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-  <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-head">
-      <div class="modal-title" id="modalTitle"><i class="fas fa-history"></i> Riwayat</div>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-    </div>
-    <div class="modal-body" id="modalBody"></div>
   </div>
 </div>
 
@@ -279,7 +376,9 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/12HEJ_ieaoshtPwGC-FkjN
 const AppState = {
   scannerRunning: false, flashOn: false, isProcessing: false,
   html5QrCode: null, mahasiswaData: [], isOnline: false,
-  soundEnabled: true, lightMode: false, currentFilter: "all", searchQuery: ""
+  currentFilter: "all", searchQuery: "",
+  calMonth: new Date().getMonth(), calYear: new Date().getFullYear(),
+  recentScans: []
 };
 
 const DOM = {
@@ -288,7 +387,6 @@ const DOM = {
   presensiStatus: document.getElementById("presensiStatus"),
   btnStartScan: document.getElementById("btnStartScan"),
   btnFlash: document.getElementById("btnFlash"),
-  qrImage: document.getElementById("qrImage"),
   tableBody: document.getElementById("tableBody"),
   dataTable: document.getElementById("dataTable"),
   loadingData: document.getElementById("loadingData"),
@@ -298,92 +396,64 @@ const DOM = {
   qrNimInput: document.getElementById("qrNimInput"),
   qrResultImage: document.getElementById("qrResultImage"),
   qrInfo: document.getElementById("qrInfo"),
-  qrPreview: document.getElementById("qrPreview"),
+  qrPreviewSingle: document.getElementById("qrPreviewSingle"),
+  qrAllGrid: document.getElementById("qrAllGrid"),
   liveTime: document.getElementById("liveTime"),
   statTotal: document.getElementById("statTotal"),
   statHadir: document.getElementById("statHadir"),
   statBelum: document.getElementById("statBelum"),
+  statPct: document.getElementById("statPct"),
   searchInput: document.getElementById("searchInput"),
-  clearSearch: document.getElementById("clearSearch"),
-  modalOverlay: document.getElementById("modalOverlay"),
-  modalTitle: document.getElementById("modalTitle"),
-  modalBody: document.getElementById("modalBody"),
+  todayDate: document.getElementById("todayDate"),
+  weeklyChart: document.getElementById("weeklyChart"),
+  leaderboard: document.getElementById("leaderboard"),
+  needAttention: document.getElementById("needAttention"),
+  notPresent: document.getElementById("notPresent"),
+  recentScan: document.getElementById("recentScan"),
+  classList: document.getElementById("classList"),
+  calTitle: document.getElementById("calTitle"),
+  calDays: document.getElementById("calDays"),
   toast: document.getElementById("toast")
 };
 
-let audioCtx = null;
-function playSound(type) {
-  if (!AppState.soundEnabled) return;
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const now = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    if (type === "success") { osc.frequency.setValueAtTime(523, now); osc.frequency.exponentialRampToValueAtTime(1046, now+0.3); gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now+0.4); osc.start(now); osc.stop(now+0.4); }
-    else if (type === "error") { osc.type = "square"; osc.frequency.setValueAtTime(220, now); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.001, now+0.3); osc.start(now); osc.stop(now+0.3); }
-    else { osc.frequency.setValueAtTime(660, now); gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now+0.1); osc.start(now); osc.stop(now+0.1); }
-  } catch(e) {}
+function switchTab(name) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+  document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === "panel-" + name));
 }
 
-function toggleSound() {
-  AppState.soundEnabled = !AppState.soundEnabled;
-  document.getElementById("soundIcon").className = AppState.soundEnabled ? "fas fa-volume-up" : "fas fa-volume-mute";
-  showToast(AppState.soundEnabled ? "🔊 Suara aktif" : "🔇 Suara mati");
+function createBubbles() {
+  const c = document.getElementById("bubbles"); if (!c) return;
+  for (let i = 0; i < 15; i++) {
+    const b = document.createElement("div"); b.className = "bubble";
+    const s = 6 + Math.random()*20;
+    b.style.width = s + "px"; b.style.height = s + "px";
+    b.style.left = Math.random()*100 + "%";
+    b.style.animationDuration = 12 + Math.random()*15 + "s";
+    b.style.animationDelay = Math.random()*15 + "s";
+    c.appendChild(b);
+  }
 }
 
-function toggleTheme() {
-  AppState.lightMode = !AppState.lightMode;
-  document.body.style.filter = AppState.lightMode ? "invert(1) hue-rotate(180deg)" : "none";
-  showToast(AppState.lightMode ? "☀️ Mode terang" : "🌙 Mode gelap");
+function updateClock() {
+  if (!DOM.liveTime) return;
+  DOM.liveTime.textContent = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Asia/Jakarta" }) + " WIB";
+  if (DOM.todayDate) {
+    DOM.todayDate.textContent = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  }
 }
+setInterval(updateClock, 1000); updateClock();
 
-function generateQRToEl(el, text, size) {
-  el.innerHTML = "";
-  if (typeof QRCode === "undefined") { el.innerHTML = '<div style="color:#000;padding:20px;font-size:11px;">QR tidak tersedia</div>'; return null; }
-  try { return new QRCode(el, { text: text, width: size||180, height: size||180, colorDark: "#0a1628", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M }); }
-  catch(e) { return null; }
+function setConn(s, msg) { if (DOM.statusDot) DOM.statusDot.className = "dot " + s; if (DOM.statusLabel) DOM.statusLabel.textContent = msg; AppState.isOnline = s === "online"; }
+
+function showStatus(msg, type, dur) {
+  if (!DOM.status) return;
+  const ic = { success: "fa-check-circle", error: "fa-exclamation-circle", warning: "fa-triangle-exclamation", info: "fa-info-circle" };
+  DOM.status.innerHTML = '<i class="fas ' + (ic[type]||ic.info) + '"></i> <span>' + msg + '</span>';
+  DOM.status.className = type;
+  DOM.status.style.display = "flex";
+  clearTimeout(DOM.status._t);
+  if (type === "success" || type === "error") DOM.status._t = setTimeout(() => DOM.status.style.display = "none", dur||4000);
 }
-
-function getQRDataURL(el) {
-  const c = el.querySelector("canvas"); if (c) return c.toDataURL("image/png");
-  const i = el.querySelector("img"); return i ? i.src : null;
-}
-
-function generateQR() {
-  const d = { nim: "ABSENSI-KELAS", nama: "Presensi Kelas", link_sheet: SHEET_URL, timestamp: new Date().toISOString() };
-  setTimeout(() => generateQRToEl(DOM.qrImage, JSON.stringify(d), 180), 200);
-}
-
-function downloadQR() {
-  const u = getQRDataURL(DOM.qrImage);
-  if (!u) return showToast("❌ QR belum siap");
-  const a = document.createElement("a"); a.download = "qr-presensi.png"; a.href = u; a.click();
-  showToast("✅ QR diunduh");
-}
-
-function generateQRCode() {
-  const nim = DOM.qrNimInput.value.trim();
-  if (!nim || nim.length < 3) { showStatus("NIM minimal 3 angka", "error"); playSound("error"); return; }
-  const m = AppState.mahasiswaData.find(x => x.nim === nim);
-  if (!m) { showStatus("NIM " + nim + " tidak terdaftar", "error"); playSound("error"); return; }
-  const d = { nim: m.nim, nama: m.nama, kelas: m.kelas, jurusan: m.jurusan, link_sheet: SHEET_URL, timestamp: new Date().toISOString() };
-  DOM.qrResultImage.innerHTML = "";
-  generateQRToEl(DOM.qrResultImage, JSON.stringify(d), 175);
-  DOM.qrInfo.innerHTML = "<strong>NIM</strong>" + m.nim + "<br><strong>Nama</strong>" + m.nama + "<br><strong>Kelas</strong>" + m.kelas + "<br><strong>Jurusan</strong>" + m.jurusan;
-  DOM.qrPreview.classList.add("show");
-  showStatus("QR " + m.nama + " siap", "success");
-  playSound("success");
-}
-
-function downloadQRCode() {
-  const u = getQRDataURL(DOM.qrResultImage);
-  if (!u) return showToast("❌ QR belum siap");
-  const a = document.createElement("a"); a.download = "qr-" + (DOM.qrNimInput.value.trim()||"mhs") + ".png"; a.href = u; a.click();
-  showToast("✅ QR tersimpan");
-}
-
-function closeQRPreview() { DOM.qrPreview.classList.remove("show"); DOM.qrNimInput.value = ""; }
 
 let toastTimer;
 function showToast(msg, dur) {
@@ -393,9 +463,242 @@ function showToast(msg, dur) {
   toastTimer = setTimeout(() => DOM.toast.classList.remove("show"), dur||2500);
 }
 
-function handleSearch(q) { AppState.searchQuery = q.toLowerCase().trim(); DOM.clearSearch.classList.toggle("visible", !!AppState.searchQuery); applyFilters(); }
-function clearSearch() { DOM.searchInput.value = ""; AppState.searchQuery = ""; DOM.clearSearch.classList.remove("visible"); applyFilters(); }
-function setFilter(f) { AppState.currentFilter = f; document.querySelectorAll(".filter-tab").forEach(t => t.classList.toggle("active", t.dataset.filter === f)); applyFilters(); }
+function cekAbsen(nim) {
+  const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
+  return p[nim] === new Date().toLocaleDateString("id-ID");
+}
+
+function getPresensiHariIni() {
+  return JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
+}
+
+function updateStats() {
+  const t = AppState.mahasiswaData.length;
+  let h = 0;
+  const p = getPresensiHariIni();
+  const today = new Date().toLocaleDateString("id-ID");
+  AppState.mahasiswaData.forEach(m => { if (p[m.nim] === today) h++; });
+  const pct = t > 0 ? Math.round((h/t)*100) : 0;
+  DOM.statTotal.textContent = t;
+  DOM.statHadir.textContent = h;
+  DOM.statBelum.textContent = t - h;
+  DOM.statPct.textContent = pct + "%";
+  if (t > 0) saveHistory();
+  renderWeeklyChart();
+  renderLeaderboard();
+  renderClassList();
+  renderNotPresent();
+  renderRecentScans();
+  renderCalendar();
+}
+
+function saveHistory() {
+  const t = new Date().toLocaleDateString("id-ID");
+  const p = getPresensiHariIni();
+  let c = 0;
+  AppState.mahasiswaData.forEach(m => { if (p[m.nim] === t) c++; });
+  if (c > 0) {
+    const h = JSON.parse(localStorage.getItem("presensiHistory") || "{}");
+    h[t] = { count: c, total: AppState.mahasiswaData.length };
+    localStorage.setItem("presensiHistory", JSON.stringify(h));
+  }
+}
+
+/* Chart 7 hari */
+function renderWeeklyChart() {
+  if (!DOM.weeklyChart) return;
+  const h = JSON.parse(localStorage.getItem("presensiHistory") || "{}");
+  const days = [];
+  const today = new Date();
+  const dayNames = ["Min","Sen","Sel","Rab","Kam","Jum","Sab"];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const k = d.toLocaleDateString("id-ID");
+    const e = h[k];
+    const pct = e && e.total > 0 ? (e.count / e.total) * 100 : 0;
+    days.push({ label: dayNames[d.getDay()], pct: pct, count: e ? e.count : 0, isToday: i === 0 });
+  }
+  DOM.weeklyChart.innerHTML = days.map(d => `
+    <div class="bar-wrap">
+      ${d.pct > 0 ? '<span class="bar-val">' + d.count + '</span>' : ''}
+      <div class="bar ${d.pct === 0 ? 'empty' : ''}" style="height:${Math.max(d.pct, 4)}%;"></div>
+      <span class="bar-day ${d.isToday ? 'today' : ''}">${d.label}</span>
+    </div>
+  `).join("");
+}
+
+/* Leaderboard */
+function renderLeaderboard() {
+  if (!DOM.leaderboard) return;
+  const h = JSON.parse(localStorage.getItem("presensiHistory") || "{}");
+  const today = new Date().toLocaleDateString("id-ID");
+  const p = getPresensiHariIni();
+  const classes = {};
+  AppState.mahasiswaData.forEach(m => {
+    const k = m.kelas || "Lainnya";
+    if (!classes[k]) classes[k] = { total: 0, hadir: 0 };
+    classes[k].total++;
+    if (p[m.nim] === today) classes[k].hadir++;
+  });
+  const sorted = Object.entries(classes).map(([k,v]) => ({ name: k, hadir: v.hadir, total: v.total })).sort((a,b) => b.hadir - a.hadir).slice(0, 5);
+  if (sorted.length === 0) {
+    DOM.leaderboard.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;">Belum ada data</div>';
+    return;
+  }
+  DOM.leaderboard.innerHTML = sorted.map((c, i) => {
+    let rankCls = i === 0 ? "gold" : i === 1 ? "silver" : i === 2 ? "bronze" : "";
+    const pct = c.total > 0 ? Math.round((c.hadir/c.total)*100) : 0;
+    return `<div class="lb-item ${rankCls}">
+      <div class="lb-rank">${i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i+1}</div>
+      <div class="lb-name">Kelas ${c.name}<div class="lb-sub">${c.hadir}/${c.total} · ${pct}%</div></div>
+      <div class="lb-count">${c.hadir}</div>
+    </div>`;
+  }).join("");
+}
+
+/* Perlu perhatian = mahasiswa belum hadir */
+function renderNeedAttention() {
+  if (!DOM.needAttention) return;
+  const p = getPresensiHariIni();
+  const today = new Date().toLocaleDateString("id-ID");
+  const notPresent = AppState.mahasiswaData.filter(m => p[m.nim] !== today);
+  if (AppState.mahasiswaData.length === 0) {
+    DOM.needAttention.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;">Belum ada data mahasiswa</div>';
+    return;
+  }
+  if (notPresent.length === 0) {
+    DOM.needAttention.innerHTML = '<div style="text-align:center;color:var(--glow-teal);padding:20px;">🎉 Semua sudah hadir!</div>';
+    return;
+  }
+  DOM.needAttention.innerHTML = notPresent.slice(0, 5).map(m => `
+    <div class="att-item"><span class="name">${m.nama} <small style="opacity:0.6">(${m.kelas})</small></span><span class="info">Belum</span></div>
+  `).join("");
+}
+
+/* Belum hadir hari ini (di dashboard) */
+function renderNotPresent() {
+  if (!DOM.notPresent) return;
+  const p = getPresensiHariIni();
+  const today = new Date().toLocaleDateString("id-ID");
+  const notPresent = AppState.mahasiswaData.filter(m => p[m.nim] !== today);
+  if (AppState.mahasiswaData.length === 0) {
+    DOM.notPresent.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;">Belum ada data</div>';
+    return;
+  }
+  if (notPresent.length === 0) {
+    DOM.notPresent.innerHTML = '<div style="text-align:center;color:var(--glow-teal);padding:20px;">🎉 Semua sudah hadir!</div>';
+    return;
+  }
+  DOM.notPresent.innerHTML = notPresent.map(m => `
+    <div class="att-item"><span class="name">${m.nama} <small style="opacity:0.6">(${m.kelas})</small></span><span class="info">${m.nim}</span></div>
+  `).join("");
+}
+
+/* Recent scans */
+function renderRecentScans() {
+  if (!DOM.recentScan) return;
+  const scans = JSON.parse(localStorage.getItem("recentScans") || "[]");
+  const today = new Date().toLocaleDateString("id-ID");
+  const todayScans = scans.filter(s => s.date === today);
+  if (todayScans.length === 0) {
+    DOM.recentScan.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;">Belum ada yang scan hari ini.</div>';
+    return;
+  }
+  DOM.recentScan.innerHTML = todayScans.slice(-10).reverse().map(s => `
+    <div class="att-item"><span class="name">${s.nama}</span><span class="info">${s.time}</span></div>
+  `).join("");
+}
+
+/* Perbandingan kelas */
+function renderClassList() {
+  if (!DOM.classList) return;
+  const p = getPresensiHariIni();
+  const today = new Date().toLocaleDateString("id-ID");
+  const classes = {};
+  AppState.mahasiswaData.forEach(m => {
+    const k = m.kelas || "Lainnya";
+    if (!classes[k]) classes[k] = { total: 0, hadir: 0 };
+    classes[k].total++;
+    if (p[m.nim] === today) classes[k].hadir++;
+  });
+  const arr = Object.entries(classes).map(([k,v]) => ({ name: k, hadir: v.hadir, total: v.total, pct: v.total > 0 ? Math.round((v.hadir/v.total)*100) : 0 }));
+  if (arr.length === 0) {
+    DOM.classList.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;">Belum ada data kelas</div>';
+    return;
+  }
+  DOM.classList.innerHTML = arr.map(c => `
+    <div class="class-item">
+      <div class="class-head"><span class="class-name">Kelas ${c.name}</span><span class="class-pct">${c.hadir}/${c.total} · ${c.pct}%</span></div>
+      <div class="class-bar"><div class="class-fill" style="width:${c.pct}%"></div></div>
+    </div>
+  `).join("");
+}
+
+/* Calendar */
+function renderCalendar() {
+  if (!DOM.calDays) return;
+  const y = AppState.calYear, m = AppState.calMonth;
+  const MN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+  DOM.calTitle.textContent = MN[m] + " " + y;
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const today = new Date();
+  const isTodayMonth = today.getMonth() === m && today.getFullYear() === y;
+  const todayDate = today.getDate();
+  const h = JSON.parse(localStorage.getItem("presensiHistory") || "{}");
+  let html = "";
+  for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dt = new Date(y, m, d);
+    const k = dt.toLocaleDateString("id-ID");
+    const isT = isTodayMonth && d === todayDate;
+    let cls = "cal-day";
+    if (isT) cls += " today";
+    if (h[k]) {
+      const pct = h[k].total > 0 ? h[k].count / h[k].total : 0;
+      if (pct >= 0.8) cls += " done";
+      else if (pct > 0) cls += " partial";
+    }
+    html += `<div class="${cls}">${d}</div>`;
+  }
+  DOM.calDays.innerHTML = html;
+}
+function calPrev() { AppState.calMonth--; if (AppState.calMonth < 0) { AppState.calMonth = 11; AppState.calYear--; } renderCalendar(); }
+function calNext() { AppState.calMonth++; if (AppState.calMonth > 11) { AppState.calMonth = 0; AppState.calYear++; } renderCalendar(); }
+function calToday() { const n = new Date(); AppState.calMonth = n.getMonth(); AppState.calYear = n.getFullYear(); renderCalendar(); }
+
+/* Loading data */
+async function loadDataMahasiswa() {
+  if (!DOM.loadingData) return;
+  DOM.loadingData.style.display = "block";
+  DOM.dataTable.style.display = "none";
+  DOM.loadingData.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyelami data...';
+  try {
+    const c = new AbortController();
+    const t1 = setTimeout(() => c.abort(), 5000);
+    const ping = await fetch(WEB_APP_URL + "?action=ping", { signal: c.signal });
+    clearTimeout(t1);
+    setConn(ping.ok ? "online" : "offline", ping.ok ? "Terhubung" : "Terputus");
+    if (!ping.ok) throw new Error("Offline");
+    const r = await fetch(WEB_APP_URL + "?action=get_all", { signal: AbortSignal.timeout(15000) });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    if (d && Array.isArray(d)) {
+      AppState.mahasiswaData = d;
+      localStorage.setItem("mahasiswaData", JSON.stringify(d));
+      applyFilters(); updateStats();
+      if (d.length > 0) showStatus(d.length + " data dimuat", "success", 2500);
+    }
+  } catch(e) {
+    const cached = localStorage.getItem("mahasiswaData");
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed.length > 0) { AppState.mahasiswaData = parsed; applyFilters(); updateStats(); showStatus(parsed.length + " data dari cache", "warning", 3000); return; }
+    }
+    DOM.loadingData.innerHTML = '<i class="fas fa-exclamation-circle" style="color:var(--glow-pink);"></i> Gagal memuat';
+  }
+}
 
 function applyFilters() {
   let d = AppState.mahasiswaData;
@@ -426,10 +729,14 @@ function renderTable(data) {
   DOM.totalMahasiswa.textContent = data.length + " BARIS";
 }
 
+function handleSearch(q) { AppState.searchQuery = q.toLowerCase().trim(); applyFilters(); }
+function setFilter(f) { AppState.currentFilter = f; document.querySelectorAll(".filter-tab").forEach(t => t.classList.toggle("active", t.dataset.filter === f)); applyFilters(); }
+
+/* Export CSV */
 function exportCSV() {
   if (AppState.mahasiswaData.length === 0) return showToast("❌ Tidak ada data");
   const t = new Date().toLocaleDateString("id-ID");
-  const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
+  const p = getPresensiHariIni();
   let csv = "NIM,Nama,Kelas,Jurusan,Status,Tanggal\n";
   AppState.mahasiswaData.forEach(m => {
     const h = p[m.nim] === t;
@@ -440,142 +747,79 @@ function exportCSV() {
   showToast("✅ CSV diunduh");
 }
 
+/* History */
 function showHistory() {
-  DOM.modalTitle.innerHTML = '<i class="fas fa-history"></i> Riwayat';
   const h = JSON.parse(localStorage.getItem("presensiHistory") || "{}");
   const t = new Date().toLocaleDateString("id-ID");
-  const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
+  const p = getPresensiHariIni();
   let tc = 0;
   AppState.mahasiswaData.forEach(m => { if (p[m.nim] === t) tc++; });
   if (tc > 0 && !h[t]) h[t] = { count: tc, total: AppState.mahasiswaData.length };
   const e = Object.entries(h).sort((a,b) => new Date(b[0].split("/").reverse().join("-")) - new Date(a[0].split("/").reverse().join("-")));
-  if (e.length === 0) DOM.modalBody.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-soft);">Belum ada riwayat</div>';
-  else DOM.modalBody.innerHTML = e.slice(0,7).map(([d,i]) => {
-    const p2 = i.total>0 ? Math.round((i.count/i.total)*100) : 0;
-    return '<div class="history-item"><div class="history-date">📅 ' + d + '</div><div class="history-count"><span class="badge">' + i.count + ' hadir</span>dari ' + i.total + ' • ' + p2 + '%</div></div>';
-  }).join("");
-  DOM.modalOverlay.classList.add("show");
+  if (e.length === 0) showToast("Belum ada riwayat");
+  else showToast("📅 " + e.length + " hari tercatat", 3000);
 }
 
-function closeModal(ev) { if (ev && ev.target !== DOM.modalOverlay) return; DOM.modalOverlay.classList.remove("show"); }
-
-function saveHistory() {
-  const t = new Date().toLocaleDateString("id-ID");
-  const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
-  let c = 0;
-  AppState.mahasiswaData.forEach(m => { if (p[m.nim] === t) c++; });
-  if (c > 0) {
-    const h = JSON.parse(localStorage.getItem("presensiHistory") || "{}");
-    h[t] = { count: c, total: AppState.mahasiswaData.length };
-    localStorage.setItem("presensiHistory", JSON.stringify(h));
-  }
+/* QR */
+function generateQRToEl(el, text, size) {
+  el.innerHTML = "";
+  if (typeof QRCode === "undefined") { el.innerHTML = '<div style="color:#000;padding:20px;font-size:11px;">QR tidak tersedia</div>'; return null; }
+  try { return new QRCode(el, { text: text, width: size||180, height: size||180, colorDark: "#0a1628", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M }); }
+  catch(e) { return null; }
 }
 
-function createBubbles() {
-  const c = document.getElementById("bubbles"); if (!c) return;
-  for (let i = 0; i < 15; i++) {
-    const b = document.createElement("div"); b.className = "bubble";
-    const s = 6 + Math.random()*20;
-    b.style.width = s + "px"; b.style.height = s + "px";
-    b.style.left = Math.random()*100 + "%";
-    b.style.animationDuration = 12 + Math.random()*15 + "s";
-    b.style.animationDelay = Math.random()*15 + "s";
-    c.appendChild(b);
-  }
+function getQRDataURL(el) {
+  const c = el.querySelector("canvas"); if (c) return c.toDataURL("image/png");
+  const i = el.querySelector("img"); return i ? i.src : null;
 }
 
-function updateClock() {
-  if (!DOM.liveTime) return;
-  DOM.liveTime.textContent = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Asia/Jakarta" }) + " WIB";
-}
-setInterval(updateClock, 1000); updateClock();
-
-function setConn(s, msg) { DOM.statusDot.className = "dot " + s; DOM.statusLabel.textContent = msg; AppState.isOnline = s === "online"; }
-
-function showStatus(msg, type, dur) {
-  const ic = { success: "fa-check-circle", error: "fa-exclamation-circle", warning: "fa-triangle-exclamation", info: "fa-info-circle" };
-  DOM.status.innerHTML = '<i class="fas ' + (ic[type]||ic.info) + '"></i> <span>' + msg + '</span>';
-  DOM.status.className = type;
-  DOM.status.style.display = "flex";
-  clearTimeout(DOM.status._t);
-  if (type === "success" || type === "error") DOM.status._t = setTimeout(() => DOM.status.style.display = "none", dur||4000);
+function generateQRCode() {
+  const nim = DOM.qrNimInput.value.trim();
+  if (!nim || nim.length < 3) { showToast("❌ NIM minimal 3 angka"); return; }
+  const m = AppState.mahasiswaData.find(x => x.nim === nim);
+  if (!m) { showToast("❌ NIM " + nim + " tidak terdaftar"); return; }
+  const d = { nim: m.nim, nama: m.nama, kelas: m.kelas, jurusan: m.jurusan, link_sheet: SHEET_URL, timestamp: new Date().toISOString() };
+  generateQRToEl(DOM.qrResultImage, JSON.stringify(d), 175);
+  DOM.qrInfo.innerHTML = "<strong>NIM</strong>" + m.nim + "<br><strong>Nama</strong>" + m.nama + "<br><strong>Kelas</strong>" + m.kelas + "<br><strong>Jurusan</strong>" + m.jurusan;
+  DOM.qrPreviewSingle.style.display = "block";
+  showToast("✅ QR " + m.nama + " siap");
 }
 
-function updateStats() {
-  const t = AppState.mahasiswaData.length;
-  let h = 0;
-  const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
-  const today = new Date().toLocaleDateString("id-ID");
-  AppState.mahasiswaData.forEach(m => { if (p[m.nim] === today) h++; });
-  DOM.statTotal.textContent = t;
-  DOM.statHadir.textContent = h;
-  DOM.statBelum.textContent = t - h;
-  if (t > 0) saveHistory();
+function downloadQRCode() {
+  const u = getQRDataURL(DOM.qrResultImage);
+  if (!u) return showToast("❌ QR belum siap");
+  const a = document.createElement("a"); a.download = "qr-" + (DOM.qrNimInput.value.trim()||"mhs") + ".png"; a.href = u; a.click();
+  showToast("✅ QR tersimpan");
 }
 
-async function checkConn() {
-  setConn("checking", "Menghubungkan");
-  try {
-    const c = new AbortController();
-    const t = setTimeout(() => c.abort(), 5000);
-    const r = await fetch(WEB_APP_URL + "?action=ping", { method: "GET", signal: c.signal });
-    clearTimeout(t);
-    if (r.ok) { setConn("online", "Terhubung"); return true; }
-    throw new Error("No response");
-  } catch(e) { setConn("offline", "Terputus"); return false; }
-}
+function closeSingleQR() { DOM.qrPreviewSingle.style.display = "none"; DOM.qrNimInput.value = ""; }
 
-function cekAbsen(nim) {
-  const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
-  return p[nim] === new Date().toLocaleDateString("id-ID");
-}
-
-function updateStatusInTable(nim) {
-  if (!DOM.tableBody) return;
-  DOM.tableBody.querySelectorAll("tr").forEach(r => {
-    const td = r.querySelector("td:first-child");
-    if (td && td.textContent.trim() === nim) {
-      const st = r.querySelector("td:last-child");
-      if (st) st.innerHTML = '<span class="status-hadir"><i class="fas fa-check"></i> Hadir</span>';
-    }
+function generateAllQR() {
+  if (AppState.mahasiswaData.length === 0) return showToast("❌ Belum ada data mahasiswa");
+  DOM.qrAllGrid.style.display = "grid";
+  DOM.qrAllGrid.innerHTML = "";
+  AppState.mahasiswaData.slice(0, 60).forEach((m, i) => {
+    const d = { nim: m.nim, nama: m.nama, kelas: m.kelas, jurusan: m.jurusan, link_sheet: SHEET_URL };
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "background:#fff; padding:8px; border-radius:10px; text-align:center; cursor:pointer;";
+    wrap.title = "Klik untuk download";
+    const qrDiv = document.createElement("div");
+    wrap.appendChild(qrDiv);
+    const nm = document.createElement("div");
+    nm.style.cssText = "font-size:9px; color:#0a1628; font-weight:600; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;";
+    nm.textContent = m.nama;
+    wrap.appendChild(nm);
+    DOM.qrAllGrid.appendChild(wrap);
+    generateQRToEl(qrDiv, JSON.stringify(d), 120);
+    wrap.onclick = () => {
+      const u = getQRDataURL(qrDiv);
+      if (u) { const a = document.createElement("a"); a.download = "qr-" + m.nim + "-" + m.nama + ".png"; a.href = u; a.click(); }
+    };
   });
-  updateStats();
+  showToast("✅ " + Math.min(AppState.mahasiswaData.length, 60) + " QR dibuat");
 }
 
-async function loadDataMahasiswa() {
-  DOM.loadingData.style.display = "block";
-  DOM.dataTable.style.display = "none";
-  DOM.loadingData.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyelami data...';
-  try {
-    const on = await checkConn();
-    if (!on) {
-      const cached = localStorage.getItem("mahasiswaData");
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed.length > 0) { AppState.mahasiswaData = parsed; applyFilters(); updateStats(); showStatus(parsed.length + " data dari cache", "warning", 3000); return; }
-      }
-      DOM.loadingData.innerHTML = '<i class="fas fa-wifi" style="color:var(--glow-pink);"></i> Tidak ada koneksi';
-      return;
-    }
-    const r = await fetch(WEB_APP_URL + "?action=get_all", { signal: AbortSignal.timeout(15000) });
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    const d = await r.json();
-    if (d && Array.isArray(d) && d.length > 0) {
-      AppState.mahasiswaData = d;
-      localStorage.setItem("mahasiswaData", JSON.stringify(d));
-      applyFilters(); updateStats();
-      showStatus(d.length + " data dimuat", "success", 2500);
-    } else {
-      DOM.loadingData.innerHTML = '<i class="fas fa-fish"></i> Belum ada data';
-      DOM.totalMahasiswa.textContent = "0 BARIS";
-    }
-  } catch(e) {
-    const cached = localStorage.getItem("mahasiswaData");
-    if (cached) { const parsed = JSON.parse(cached); if (parsed.length > 0) { AppState.mahasiswaData = parsed; applyFilters(); updateStats(); return; } }
-    DOM.loadingData.innerHTML = '<i class="fas fa-exclamation-circle" style="color:var(--glow-pink);"></i> Gagal memuat<br><span style="font-size:11px;opacity:0.7;">' + e.message + '</span>';
-  }
-}
-
+/* Scanner */
 function toggleScanner() { AppState.scannerRunning ? stopScanner() : startScanner(); }
 
 function startScanner() {
@@ -587,17 +831,15 @@ function startScanner() {
   try {
     AppState.html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
     const cfg = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
-    AppState.html5QrCode.start({ facingMode: "environment" }, cfg, onScanSuccess, onScanError)
-      .then(() => { AppState.scannerRunning = true; DOM.scanStatus.innerHTML = '<i class="fas fa-water"></i> Memindai...'; showStatus("Kamera aktif", "info", 2500); })
+    AppState.html5QrCode.start({ facingMode: "environment" }, cfg, onScanSuccess, () => {})
+      .then(() => { AppState.scannerRunning = true; DOM.scanStatus.innerHTML = '<i class="fas fa-water"></i> Memindai...'; })
       .catch(() => {
-        AppState.html5QrCode.start({ facingMode: "user" }, cfg, onScanSuccess, onScanError)
-          .then(() => { AppState.scannerRunning = true; showStatus("Kamera depan aktif", "info", 2500); })
-          .catch(() => { showStatus("Gagal akses kamera", "error"); resetScanBtn(); });
+        AppState.html5QrCode.start({ facingMode: "user" }, cfg, onScanSuccess, () => {})
+          .then(() => { AppState.scannerRunning = true; })
+          .catch(() => { showToast("❌ Gagal akses kamera"); resetScanBtn(); });
       });
-  } catch(e) { showStatus("Pemindai gagal dimuat", "error"); resetScanBtn(); }
+  } catch(e) { showToast("❌ Pemindai gagal dimuat"); resetScanBtn(); }
 }
-
-function onScanError() {}
 
 function stopScanner() {
   if (AppState.html5QrCode && AppState.scannerRunning) {
@@ -610,7 +852,6 @@ function resetScanBtn() { DOM.btnStartScan.classList.remove("stop"); DOM.btnStar
 function onScanSuccess(txt) {
   if (AppState.isProcessing) return;
   AppState.isProcessing = true;
-  playSound("scan");
   if (navigator.vibrate) navigator.vibrate(100);
   if (AppState.html5QrCode && AppState.scannerRunning) AppState.html5QrCode.stop().then(() => { AppState.scannerRunning = false; resetScanBtn(); }).catch(() => {});
   processPresensi(txt);
@@ -621,12 +862,12 @@ async function processPresensi(qr) {
     showStatus("Memproses presensi", "info", 5000);
     let nim = "";
     try { nim = JSON.parse(qr).nim || ""; } catch(e) { nim = qr.trim(); }
-    if (!nim || nim.length < 3) { showStatus("NIM tidak valid", "error"); playSound("error"); AppState.isProcessing = false; setTimeout(startScanner, 2000); return; }
+    if (!nim || nim.length < 3) { showStatus("NIM tidak valid", "error"); AppState.isProcessing = false; setTimeout(startScanner, 2000); return; }
     const m = AppState.mahasiswaData.find(x => x.nim === nim);
-    if (!m) { showStatus("NIM " + nim + " tidak terdaftar", "error"); playSound("error"); AppState.isProcessing = false; setTimeout(startScanner, 2000); return; }
+    if (!m) { showStatus("NIM " + nim + " tidak terdaftar", "error"); AppState.isProcessing = false; setTimeout(startScanner, 2000); return; }
     const today = new Date().toLocaleDateString("id-ID");
-    const p = JSON.parse(localStorage.getItem("presensiHariIni") || "{}");
-    if (p[nim] === today) { showStatus(m.nama + " sudah presensi", "warning"); playSound("warning"); AppState.isProcessing = false; setTimeout(startScanner, 2000); return; }
+    const p = getPresensiHariIni();
+    if (p[nim] === today) { showStatus(m.nama + " sudah presensi", "warning"); AppState.isProcessing = false; setTimeout(startScanner, 2000); return; }
     await fetch(WEB_APP_URL, {
       method: "POST", mode: "no-cors",
       headers: { "Content-Type": "application/json" },
@@ -634,19 +875,21 @@ async function processPresensi(qr) {
     });
     p[nim] = today;
     localStorage.setItem("presensiHariIni", JSON.stringify(p));
+    const scans = JSON.parse(localStorage.getItem("recentScans") || "[]");
+    scans.push({ nim: m.nim, nama: m.nama, kelas: m.kelas, date: today, time: new Date().toLocaleTimeString("id-ID", {hour:"2-digit",minute:"2-digit"}) });
+    localStorage.setItem("recentScans", JSON.stringify(scans.slice(-100)));
     showStatus(m.nama + " hadir!", "success");
     DOM.scanStatus.innerHTML = '<i class="fas fa-check"></i> Hadir';
     DOM.presensiStatus.textContent = "Hadir";
-    playSound("success"); showToast("💖 " + m.nama + " hadir!");
+    showToast("💖 " + m.nama + " hadir!");
     if (navigator.vibrate) navigator.vibrate([100,50,100]);
-    updateStatusInTable(nim); updateStats();
-    setTimeout(loadDataMahasiswa, 500);
-  } catch(e) { showStatus("Error: " + e.message, "error"); playSound("error"); }
+    updateStats();
+  } catch(e) { showStatus("Error: " + e.message, "error"); }
   finally {
     setTimeout(() => {
       AppState.isProcessing = false;
       DOM.scanStatus.innerHTML = '<i class="fas fa-water"></i> Arahkan ke QR Code';
-      if (!AppState.scannerRunning) startScanner();
+      if (!AppState.scannerRunning && document.getElementById("panel-scan").classList.contains("active")) startScanner();
     }, 3000);
   }
 }
@@ -663,19 +906,10 @@ function toggleFlash() {
 }
 
 async function init() {
-  console.log("🌊 Deep Ocean v8.0");
-  createBubbles(); updateClock();
-  setTimeout(() => { if (typeof QRCode !== "undefined") generateQR(); else setTimeout(generateQR, 1000); }, 300);
+  createBubbles(); updateClock(); renderCalendar();
   await loadDataMahasiswa();
   setInterval(loadDataMahasiswa, 30000);
-  try {
-    if (navigator.mediaDevices?.getUserMedia) {
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      s.getTracks().forEach(t => t.stop());
-      setTimeout(startScanner, 1000);
-    }
-  } catch(e) {}
-  setTimeout(() => showToast("🌊 Deep Ocean v8.0 siap!"), 1500);
+  setTimeout(() => showToast("🌊 Dashboard siap!"), 800);
 }
 
 document.addEventListener("DOMContentLoaded", init);
